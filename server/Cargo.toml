@@ -6,3 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+actix-web = { version = "4.4.0", features = ["rustls"] }
+chrono = { version = "0.4.28", features = ["serde"] }
+rand = "0.8.5"
+serde = { version = "1.0.188", features = ["derive"] }
+sqlx = { version = "0.7.1", features = ["sqlite", "runtime-tokio"] }
+tap = "1.0.1"
+tokio = { version = "1.32.0", features = ["full"] }
