@@ -111,13 +111,19 @@ impl PostRepository for SqlitePostRepository {
         const QUERY_1: &str = "INSERT INTO post_flags (id, flags) \
                                VALUES (?, ?)";
 
-        let row = rows::Post::from_model(model)?;
+        let rows::Post {
+            id,
+            content,
+            posted_at,
+            created_at,
+            flags,
+        } = rows::Post::from_model(model)?;
 
         let result = sqlx::query(QUERY_0)
-            .bind(row.id)
-            .bind(row.content)
-            .bind(row.posted_at)
-            .bind(row.created_at)
+            .bind(id)
+            .bind(content)
+            .bind(posted_at)
+            .bind(created_at)
             .execute(&**self)
             .await?;
 
@@ -126,8 +132,8 @@ impl PostRepository for SqlitePostRepository {
         }
 
         let result = sqlx::query(QUERY_1)
-            .bind(row.id)
-            .bind(row.flags)
+            .bind(id)
+            .bind(flags)
             .execute(&**self)
             .await?;
 
