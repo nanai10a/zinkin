@@ -73,11 +73,7 @@ impl PostRepository for SqlitePostRepository {
                              ORDER BY DATETIME(p.created_at) DESC \
                              LIMIT 1";
 
-        let model = match sqlx::query(QUERY)
-            .bind(id.to_be_bytes().to_vec())
-            .fetch_one(&**self)
-            .await
-        {
+        let model = match sqlx::query(QUERY).bind(id).fetch_one(&**self).await {
             Ok(ref row) => rows::Post::from_row(row)?.into_model()?,
             Err(sqlx::Error::RowNotFound) => return Ok(None),
             Err(err) => anyhow::bail!(err),
@@ -94,7 +90,7 @@ impl PostRepository for SqlitePostRepository {
                              ORDER BY DATETIME(p.created_at) DESC";
 
         let models = sqlx::query(QUERY)
-            .bind(id.to_be_bytes().to_vec())
+            .bind(id)
             .fetch_all(&**self)
             .await?
             .iter()
