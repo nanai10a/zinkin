@@ -16,6 +16,7 @@ pub trait PostRepository {
         created_at: models::DateTime,
     ) -> anyhow::Result<()>;
     async fn delete(&self, id: u32) -> anyhow::Result<()>;
+    async fn restore(&self, id: u32) -> anyhow::Result<()>;
 }
 
 pub struct SqlitePostRepository(sqlx::SqlitePool);
@@ -170,6 +171,21 @@ impl PostRepository for SqlitePostRepository {
         #[rustfmt::skip]
         const QUERY: &str = "UPDATE post_flags \
                              SET flags = flags | 0b0001 \
+                             WHERE id = ?";
+
+        let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;
+
+        if result.rows_affected() != 1 {
+            anyhow::bail!("failed to update post_flags");
+        }
+
+        Ok(())
+    }
+
+    async fn restore(&self, id: u32) -> anyhow::Result<()> {
+        #[rustfmt::skip]
+        const QUERY: &str = "UPDATE post_flags \
+                             SET flags = flags ^ 0b0001 \
                              WHERE id = ?";
 
         let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;

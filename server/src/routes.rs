@@ -113,7 +113,7 @@ mod posts {
                         repo.delete(*id).await?;
                     },
                     Update::Deleting { is_deleted: false } => {
-                        unimplemented!()
+                        repo.restore(*id).await?;
                     },
                 }
 
