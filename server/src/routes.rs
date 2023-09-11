@@ -49,6 +49,7 @@ mod posts {
     }
 
     #[derive(Deserialize)]
+    #[serde(rename_all = "camelCase")]
     pub struct Create {
         pub content: String,
     }
@@ -92,6 +93,7 @@ mod posts {
         }
 
         #[derive(Deserialize)]
+        #[serde(rename_all = "camelCase")]
         #[serde(untagged)]
         pub enum Update {
             Modify { content: String },
