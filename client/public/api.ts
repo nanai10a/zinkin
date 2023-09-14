@@ -4,7 +4,10 @@ import { z } from "zod";
 export interface Post extends z.TypeOf<typeof Post> {}
 export const Post = z.object({
   id: z.number(),
-  content: z.string(),
+  content: z.object({
+    src: z.string(),
+    html: z.string(),
+  }),
   postedAt: z.date({ coerce: true }),
   createdAt: z.date({ coerce: true }),
   isDeleted: z.boolean(),
