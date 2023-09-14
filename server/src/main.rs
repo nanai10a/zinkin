@@ -21,9 +21,6 @@
 /// defines models of domain
 pub mod models;
 
-// defines models for convert to / from json
-pub mod jsons;
-
 /// defines models for convert to / from database data
 pub mod rows;
 
