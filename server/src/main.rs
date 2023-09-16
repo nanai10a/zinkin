@@ -36,7 +36,16 @@ pub mod repos;
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     actix_web::HttpServer::new(move || {
+        let cors = {
+            actix_cors::Cors::default()
+                .allow_any_origin()
+                .allow_any_method()
+                .allow_any_header()
+                .max_age(3600)
+        };
+
         actix_web::App::new()
+            .wrap(cors)
             .data_factory(|| repos::SqlitePostRepository::new(std::path::Path::new("zinkin.db")))
             .service(routes::services::<repos::SqlitePostRepository>())
     })
