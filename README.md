@@ -5,4 +5,4 @@
 
 ---
 
-for \*tweeting\* alone.
+for \*tweeting\* as alone.
