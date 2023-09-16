@@ -76,6 +76,15 @@ const Submit = ({ reload }: { reload: () => void }) => {
 };
 
 export default function Home() {
+  useEffect(() => {
+    injectGlobal`
+      .root-layout {
+        display: grid;
+        grid-template-columns: 3fr 7fr 2fr;
+      }
+    `;
+  });
+
   const [posts, loading, fire] = useAPI("/posts", "GET");
 
   const get = useCallback(() => fire(null), [fire]);
@@ -84,13 +93,11 @@ export default function Home() {
   useEffect(get, [get]);
 
   return (
-    <main class="w-full min-h-screen flex flex-row">
-      <div class="basis-3/12">
-        <div class="" />
-      </div>
+    <main class="w-full min-h-screen root-layout">
+      <div class="">left</div>
 
-      <div class="basis-7/12 flex flex-col">
-        <div class="grow overflow-y-auto">
+      <div class="flex flex-col">
+        <div class="grow overflow-x-auto">
           <Timeline posts={posts ?? []} />
         </div>
 
@@ -99,9 +106,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div class="basis-2/12">
-        <div class="" />
-      </div>
+      <div class="">right</div>
     </main>
   );
 }
