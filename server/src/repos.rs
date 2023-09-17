@@ -50,7 +50,7 @@ impl PostRepository for SqlitePostRepository {
                              WHERE DATETIME(p.created_at) = ( \
                                  SELECT MAX(DATETIME(created_at)) FROM posts \
                                  WHERE id = p.id \
-                             ) \
+                             ) AND (pf.flags & 0x01) = 0 \
                              ORDER BY DATETIME(created_at) DESC, p.id DESC";
 
         let models = sqlx::query(QUERY)
