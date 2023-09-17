@@ -47,10 +47,10 @@ impl PostRepository for SqlitePostRepository {
         #[rustfmt::skip]
         const QUERY: &str = "SELECT p.*, pf.flags FROM posts AS p \
                              JOIN post_flags AS pf ON p.id = pf.id \
-                             WHERE DATETIME(p.created_at) = (
-                                 SELECT MAX(DATETIME(created_at)) FROM posts
-                                 WHERE id = p.id
-                             )
+                             WHERE DATETIME(p.created_at) = ( \
+                                 SELECT MAX(DATETIME(created_at)) FROM posts \
+                                 WHERE id = p.id \
+                             ) \
                              ORDER BY DATETIME(created_at) DESC, p.id DESC";
 
         let models = sqlx::query(QUERY)
