@@ -77,6 +77,10 @@ injectGlobal`
   }
 `;
 
+const ShowContent = ({ html: __html }: Post["content"]) => {
+  return <div class="md-frame" dangerouslySetInnerHTML={{ __html }} />;
+};
+
 const fmts: Intl.DateTimeFormatOptions = {
   dateStyle: "medium",
   timeStyle: "medium",
@@ -86,10 +90,7 @@ const ShowPost = ({ post }: { post: Post }) => {
 
   return (
     <div>
-      <div
-        class="md-frame"
-        dangerouslySetInnerHTML={{ __html: post.content.html }}
-      />
+      <ShowContent {...post.content} />
       <time
         class="block mt-4 opacity-50 text-right"
         dateTime={post.postedAt.toISOString()}
