@@ -118,7 +118,7 @@ const Submit = ({ reload }: { reload: () => void }) => {
     [setText],
   );
 
-  const [post, loading, fire] = useAPI("/posts", "POST");
+  const { fire } = useAPI("/posts", "POST");
 
   const submit = useCallback(
     (e: KeyboardEvent) => {
@@ -155,7 +155,7 @@ export default function Home() {
     `;
   });
 
-  const [posts, loading, fire] = useAPI("/posts", "GET");
+  const { fire, res: posts } = useAPI("/posts", "GET");
 
   const get = useCallback(() => fire(null), [fire]);
 

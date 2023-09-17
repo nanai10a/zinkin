@@ -36,7 +36,9 @@ type Schema = {
   };
 };
 
-const schema = (key: string): any => {
+type Validator = { req: z.ZodSchema; res: z.ZodSchema };
+
+const onRoute = (url: string, method: string): Validator => {
   const routes = [
     [
       /\/posts/,
@@ -44,11 +46,11 @@ const schema = (key: string): any => {
         GET: {
           req: z.null(),
           res: Post.array(),
-        },
+        } /* satisfies Validator */,
         POST: {
           req: z.object({ content: z.string() }),
           res: Post,
-        },
+        } /* satisfies Validator */,
       },
     ],
     [
@@ -57,20 +59,22 @@ const schema = (key: string): any => {
         GET: {
           req: z.null(),
           res: Post.nullable(),
-        },
+        } /* satisfies Validator */,
         PATCH: {
           req: z.union([
             z.object({ content: z.string() }),
             z.object({ isDeleted: z.boolean() }),
           ]),
           res: Post,
-        },
+        } /* satisfies Validator */,
       },
     ],
   ] as const;
 
-  for (const [patt, methods] of routes) {
-    if (patt.test(key)) return methods;
+  for (const [patt, branch] of routes) {
+    if (patt.test(url) && method in branch) {
+      return branch[method as keyof typeof branch];
+    }
   }
 
   throw new Error("unknown route");
@@ -94,32 +98,31 @@ export const useAPI = <
 >(
   url: U,
   method: M,
-): [
-  res: res<U, M> | null,
-  loading: boolean,
-  fire: (req: req<U, M>) => void,
-] => {
-  const [val, set] = useState<res<U, M> | null>(null);
-  const [status, resolved] = useState(false);
+): {
+  res: res<U, M> | null;
+  loading: boolean;
+  fire: (req: req<U, M>) => void;
+} => {
+  const [res, set] = useState<res<U, M> | null>(null);
+  const [loading, resolved] = useState(false);
 
   const fire = useCallback(
     (req: unknown) => {
-      const v = schema(url)?.[method];
-      if (typeof v !== "object") throw new Error("cannot retrieve validator");
+      const vld = onRoute(url, method);
 
-      const body = req === null ? null : JSON.stringify(v.req.parse(req));
-      const headers = { "content-type": "application/json" };
+      const body = req === null ? null : JSON.stringify(vld.req.parse(req));
+      const headers = { "Content-Type": "application/json" };
 
       resolved(false);
 
       fetch(new URL(url, BASE_URL), { body, headers, method })
         .then((res) => res.json())
-        .then((obj) => v.res.parse(obj))
+        .then((obj) => vld.res.parse(obj))
         .then((val) => set(val))
         .then(() => resolved(true));
     },
     [set],
   );
 
-  return [val, status, fire];
+  return { res, loading, fire };
 };
