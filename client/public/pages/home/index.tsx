@@ -2,9 +2,18 @@ import "preact/debug";
 
 import { injectGlobal } from "@twind/core";
 
+import { Icon as _Icon, IconProps } from "@iconify/react";
+
 import { useEffect, useCallback, useState } from "preact/hooks";
 
 import { useAPI, Post } from "../../api";
+
+const Icon = (props: IconProps) => {
+  // ignore type error
+  const Icon = _Icon as any;
+
+  return <Icon {...props} />;
+};
 
 const fmts: Intl.DateTimeFormatOptions = {
   dateStyle: "medium",
