@@ -101,18 +101,6 @@ const ShowPost = ({ post }: { post: Post }) => {
   );
 };
 
-const Timeline = ({ posts }: { posts: Post[] }) => {
-  return (
-    <ul class="w-full divide-(y slate-300)">
-      {posts.toReversed().map((post) => (
-        <li class="px-2 py-4">
-          <ShowPost post={post} />
-        </li>
-      ))}
-    </ul>
-  );
-};
-
 const Submit = ({ reload }: { reload: () => void }) => {
   const [text, setText] = useState("");
 
@@ -170,13 +158,20 @@ export default function Home() {
   useEffect(get, [get]);
 
   return (
-    <main class="w-full min-h-screen root-layout">
+    <main class="absolute inset-0 w-full h-screen root-layout">
       <div class="">left</div>
 
-      <div class="min-w-0 flex flex-col">
-        <div class="grow overflow-x-auto">
-          <Timeline posts={posts ?? []} />
-        </div>
+      <div class="min-w-0 min-h-0 flex flex-col">
+        <ul class="grow w-full flex-(& col-reverse) overflow-y-auto">
+          {posts?.map((post) => (
+            <>
+              <li class="px-2 py-4">
+                <ShowPost post={post} />
+              </li>
+              <hr class="h-0.5 bg-slate-300 last:hidden" />
+            </>
+          ))}
+        </ul>
 
         <div class="mb-4">
           <Submit reload={get} />
