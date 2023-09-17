@@ -212,13 +212,6 @@ const Submit = ({ reload }: { reload: () => void }) => {
   );
 };
 
-injectGlobal`
-  .root-layout {
-    display: grid;
-    grid-template-columns: 3fr 7fr 2fr;
-  }
-`;
-
 export default function Home() {
   const { fire, res: posts } = useAPI("/posts", "GET");
 
@@ -229,9 +222,7 @@ export default function Home() {
 
   return (
     <main class="absolute inset-0 w-full h-screen root-layout">
-      <div class="">left</div>
-
-      <div class="min-w-0 min-h-0 flex flex-col">
+      <div class="mx-auto min-w-0 max-w-2xl min-h-0 h-full flex flex-col">
         <ul class="grow w-full flex-(& col-reverse) overflow-y-auto">
           {posts?.map((post) => (
             <>
@@ -247,8 +238,6 @@ export default function Home() {
           <Submit reload={get} />
         </div>
       </div>
-
-      <div class="">right</div>
     </main>
   );
 }
