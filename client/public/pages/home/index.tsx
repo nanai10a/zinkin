@@ -166,7 +166,7 @@ export default function Home() {
     <main class="w-full min-h-screen root-layout">
       <div class="">left</div>
 
-      <div class="flex flex-col">
+      <div class="min-w-0 flex flex-col">
         <div class="grow overflow-x-auto">
           <Timeline posts={posts ?? []} />
         </div>
