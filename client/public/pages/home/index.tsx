@@ -4,7 +4,7 @@ import { injectGlobal } from "@twind/core";
 
 import { Icon as _Icon, IconProps } from "@iconify/react";
 
-import { useEffect, useCallback, useState } from "preact/hooks";
+import { useMemo, useEffect, useCallback, useState } from "preact/hooks";
 
 import { useAPI, Post } from "../../api";
 
@@ -77,26 +77,96 @@ injectGlobal`
   }
 `;
 
+const useObserve = <T,>(
+  target: T,
+  check: (prev: T, curr: T) => boolean,
+  callback: () => void,
+) => {
+  const [prev, set] = useState<T>();
+
+  if (prev === undefined) {
+    return set(target);
+  }
+
+  if (check(prev, target)) {
+    callback();
+    set(undefined);
+  }
+};
+
+const PostMenu = ({
+  reload,
+  id,
+  isDeleted,
+}: { reload: () => void } & Pick<Post, "id" | "isDeleted">) => {
+  const { fire, loading } = useAPI(`/posts/${id}`, "PATCH");
+
+  const deletx = useCallback(() => fire({ isDeleted: true }), [fire]);
+  const restore = useCallback(() => fire({ isDeleted: false }), [fire]);
+
+  useObserve(loading, (p, c) => !p && c, reload);
+
+  return (
+    <div class="w-fit leading-none flex-(& row) gap-2">
+      <button
+        class="p-2 bg-(slate-200 hover:slate-300) rounded-lg transition"
+        onClick={deletx}
+      >
+        <Icon icon="material-symbols:delete-outline-rounded" />
+      </button>
+      <button
+        class="p-2 bg-(slate-200 hover:slate-300) rounded-lg transition"
+        onClick={restore}
+        hidden={!isDeleted}
+      >
+        <Icon icon="material-symbols:settings-backup-restore-rounded" />
+      </button>
+    </div>
+  );
+};
+
 const ShowContent = ({ html: __html }: Post["content"]) => {
   return <div class="md-frame" dangerouslySetInnerHTML={{ __html }} />;
 };
 
-const fmts: Intl.DateTimeFormatOptions = {
-  dateStyle: "medium",
-  timeStyle: "medium",
-};
+const ShowDate = ({ date }: { date: Date }) => {
+  const dateTime = useMemo(() => date.toISOString(), [date]);
 
-const ShowPost = ({ post }: { post: Post }) => {
+  const content = useMemo(
+    () =>
+      date.toLocaleString("ja-JP", {
+        dateStyle: "medium",
+        timeStyle: "medium",
+      }),
+    [date],
+  );
 
   return (
-    <div>
+    <time class="block mt-4 opacity-50 text-right" dateTime={dateTime}>
+      {content}
+    </time>
+  );
+};
+
+injectGlobal`
+  .has-menu > .menu {
+    @apply opacity-0;
+  }
+
+  .has-menu:hover > .menu {
+    @apply opacity-100;
+  }
+`;
+
+const ShowPost = ({ post, reload }: { post: Post; reload: () => void }) => {
+  return (
+    <div class="relative has-menu">
+      <div class="menu absolute top-2 right-2 transition-opacity">
+        <PostMenu {...post} reload={reload} />
+      </div>
+
       <ShowContent {...post.content} />
-      <time
-        class="block mt-4 opacity-50 text-right"
-        dateTime={post.postedAt.toISOString()}
-      >
-        {post.postedAt.toLocaleString("ja-JP", fmts)}
-      </time>
+      <ShowDate date={post.postedAt} />
     </div>
   );
 };
@@ -166,7 +236,7 @@ export default function Home() {
           {posts?.map((post) => (
             <>
               <li class="px-2 py-4">
-                <ShowPost post={post} />
+                <ShowPost post={post} reload={get} />
               </li>
               <hr class="h-0.5 bg-slate-300 last:hidden" />
             </>
