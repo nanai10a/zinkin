@@ -1,7 +1,5 @@
-import install from "@twind/with-react";
 import inline from "@twind/with-react/inline";
-import autoprefix from "@twind/preset-autoprefix";
-import tailwind from "@twind/preset-tailwind";
+import { tw } from "./twind";
 
 import {
   LocationProvider,
@@ -18,15 +16,11 @@ import Header from "./header";
 
 const About = lazy(() => import("./pages/about/index"));
 
-const tw = install({
-  presets: [tailwind(), autoprefix()],
-});
-
 export function App() {
   return (
     <LocationProvider>
       <div class="app">
-        <Header />
+        {/* <Header /> */}
         <ErrorBoundary>
           <Router>
             <Route path="/" component={Home} />
