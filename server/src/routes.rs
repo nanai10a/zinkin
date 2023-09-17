@@ -146,10 +146,12 @@ mod posts {
         }
 
         #[derive(Deserialize)]
-        #[serde(rename_all = "camelCase")]
         #[serde(untagged)]
         pub enum Update {
+            #[serde(rename_all = "camelCase")]
             Modify { content: String },
+
+            #[serde(rename_all = "camelCase")]
             Deleting { is_deleted: bool },
         }
 
