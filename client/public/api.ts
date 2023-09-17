@@ -63,6 +63,7 @@ const schema = (key: string): any => {
             z.object({ content: z.string() }),
             z.object({ isDeleted: z.boolean() }),
           ]),
+          res: Post,
         },
       },
     ],
