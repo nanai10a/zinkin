@@ -221,7 +221,7 @@ export default function Home() {
   useEffect(get, [get]);
 
   return (
-    <main class="absolute inset-0 w-full h-screen root-layout">
+    <main class="absolute inset-0 w-full h-[100svh]">
       <div class="mx-auto min-w-0 max-w-2xl min-h-0 h-full flex flex-col">
         <ul class="grow w-full flex-(& col-reverse) overflow-y-auto">
           {posts?.map((post) => (
@@ -234,7 +234,7 @@ export default function Home() {
           ))}
         </ul>
 
-        <div class="mb-4">
+        <div class="p-4">
           <Submit reload={get} />
         </div>
       </div>
