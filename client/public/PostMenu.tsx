@@ -1,4 +1,4 @@
-import { fetchAPI, Post } from "../../api";
+import { fetchAPI, Post } from "./api";
 
 import { Icon } from "./Icon";
 import { posts } from "./posts";

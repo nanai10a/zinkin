@@ -1,4 +1,4 @@
-import { Post } from "../../api";
+import { Post } from "./api";
 
 import { FormatDate } from "./FormatDate";
 import { Markdown } from "./Markdown";

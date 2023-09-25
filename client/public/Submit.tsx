@@ -1,7 +1,6 @@
 import { useCallback, useState } from "preact/hooks";
 
-import { fetchAPI } from "../../api";
-
+import { fetchAPI } from "./api";
 import { posts } from "./posts";
 
 export const Submit = () => {

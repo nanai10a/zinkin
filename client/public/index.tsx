@@ -1,40 +1,38 @@
-import inline from "@twind/with-react/inline";
-import { tw } from "./twind";
+import "preact/debug";
 
-import {
-  LocationProvider,
-  Router,
-  Route,
-  lazy,
-  ErrorBoundary,
-  hydrate,
-  prerender as ssr,
-} from "preact-iso";
-import Home from "./pages/home/index";
-import NotFound from "./pages/_404";
-import Header from "./header";
+import { useEffect } from "preact/hooks";
 
-const About = lazy(() => import("./pages/about/index"));
+import { fetchAPI } from "./api";
+import { posts } from "./posts";
 
-export function App() {
+import { ShowPost } from "./ShowPost";
+import { Submit } from "./Submit";
+
+export default function Home() {
+  useEffect(() => {
+    fetchAPI("/posts", "GET", null).then((res) => {
+      posts.value = res;
+    });
+  }, []);
+
   return (
-    <LocationProvider>
-      <div class="app">
-        {/* <Header /> */}
-        <ErrorBoundary>
-          <Router>
-            <Route path="/" component={Home} />
-            <Route path="/about" component={About} />
-            <Route default component={NotFound} />
-          </Router>
-        </ErrorBoundary>
+    <main class="absolute inset-0 w-full h-[100svh]">
+      <div class="mx-auto min-w-0 max-w-2xl min-h-0 h-full flex flex-col">
+        <ul class="grow w-full flex-(& col-reverse) overflow-y-auto">
+          {posts.value.map((post) => (
+            <>
+              <li class="px-2 py-4">
+                <ShowPost {...post} />
+              </li>
+              <hr class="h-0.5 bg-slate-300 last:hidden" />
+            </>
+          ))}
+        </ul>
+
+        <div class="p-4">
+          <Submit />
+        </div>
       </div>
-    </LocationProvider>
+    </main>
   );
-}
-
-hydrate(<App />);
-
-export async function prerender(data: any) {
-  return await ssr(<App {...data} />).then((r) => inline(r.html, tw));
 }

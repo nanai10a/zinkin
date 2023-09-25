@@ -1,7 +1,5 @@
 import { injectGlobal } from "@twind/core";
 
-import { Post } from "../../api";
-
 injectGlobal`
   .md-frame {
     & {
