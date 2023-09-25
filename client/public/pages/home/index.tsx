@@ -6,38 +6,35 @@ import { Icon } from "./Icon";
 import { Markdown } from "./Markdown";
 import { FormatDate } from "./FormatDate";
 
+import { signal } from "@preact/signals";
 import { useMemo, useEffect, useCallback, useState } from "preact/hooks";
 
-import { useAPI, Post } from "../../api";
+const posts = signal<Post[]>([]);
 
-const useObserve = <T,>(
-  target: T,
-  check: (prev: T, curr: T) => boolean,
-  callback: () => void,
-) => {
-  const [prev, set] = useState<T>();
+import { fetchAPI, Post } from "../../api";
 
-  if (prev === undefined) {
-    return set(target);
-  }
+const PostMenu = ({ id, isDeleted }: Pick<Post, "id" | "isDeleted">) => {
+  const deletx = useCallback(async () => {
+    const idx = posts.value.findIndex((p) => p.id === id);
+    if (idx === -1) {
+      return new Error();
+    }
 
-  if (check(prev, target)) {
-    callback();
-    set(undefined);
-  }
-};
+    posts.value[idx] = await fetchAPI(`/posts/${id}`, "PATCH", {
+      isDeleted: true,
+    });
+  }, []);
 
-const PostMenu = ({
-  reload,
-  id,
-  isDeleted,
-}: { reload: () => void } & Pick<Post, "id" | "isDeleted">) => {
-  const { fire, loading } = useAPI(`/posts/${id}`, "PATCH");
+  const restore = useCallback(async () => {
+    const idx = posts.value.findIndex((p) => p.id === id);
+    if (idx === -1) {
+      return new Error();
+    }
 
-  const deletx = useCallback(() => fire({ isDeleted: true }), [fire]);
-  const restore = useCallback(() => fire({ isDeleted: false }), [fire]);
-
-  useObserve(loading, (p, c) => !p && c, reload);
+    posts.value[idx] = await fetchAPI(`/posts/${id}`, "PATCH", {
+      isDeleted: false,
+    });
+  }, []);
 
   return (
     <div class="w-fit leading-none flex-(& row) gap-2">
@@ -68,11 +65,11 @@ injectGlobal`
   }
 `;
 
-const ShowPost = ({ post, reload }: { post: Post; reload: () => void }) => {
+const ShowPost = (post: Post) => {
   return (
     <div class="relative has-menu">
       <div class="menu absolute top-2 right-2 transition-opacity">
-        <PostMenu {...post} reload={reload} />
+        <PostMenu id={post.id} isDeleted={post.isDeleted} />
       </div>
 
       <Markdown html={post.content.html} />
@@ -81,34 +78,24 @@ const ShowPost = ({ post, reload }: { post: Post; reload: () => void }) => {
   );
 };
 
-const Submit = ({ reload }: { reload: () => void }) => {
+const Submit = () => {
   const [text, setText] = useState("");
 
   const update = useCallback(
-    (e: Event) => {
-      if (e.target instanceof HTMLTextAreaElement) {
-        setText(e.target.value);
-      } else {
-        throw new Error("Unexpected event target: " + e.target);
-      }
-    },
+    (e: Event) => setText((e.target as HTMLTextAreaElement).value),
     [setText],
   );
 
-  const { fire } = useAPI("/posts", "POST");
-
   const submit = useCallback(
-    (e: KeyboardEvent) => {
+    async (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "Enter") {
-        setText((text) => {
-          fire({ content: text });
-          return "";
-        });
+        const res = await fetchAPI("/posts", "POST", { content: text });
 
-        reload();
+        posts.value.unshift(res);
+        setText("");
       }
     },
-    [fire, setText],
+    [text, setText],
   );
 
   return (
@@ -123,21 +110,20 @@ const Submit = ({ reload }: { reload: () => void }) => {
 };
 
 export default function Home() {
-  const { fire, res: posts } = useAPI("/posts", "GET");
-
-  const get = useCallback(() => fire(null), [fire]);
-
-  // initially load
-  useEffect(get, [get]);
+  useEffect(() => {
+    fetchAPI("/posts", "GET", null).then((res) => {
+      posts.value = res;
+    });
+  }, []);
 
   return (
     <main class="absolute inset-0 w-full h-[100svh]">
       <div class="mx-auto min-w-0 max-w-2xl min-h-0 h-full flex flex-col">
         <ul class="grow w-full flex-(& col-reverse) overflow-y-auto">
-          {posts?.map((post) => (
+          {posts.value.map((post) => (
             <>
               <li class="px-2 py-4">
-                <ShowPost post={post} reload={get} />
+                <ShowPost {...post} />
               </li>
               <hr class="h-0.5 bg-slate-300 last:hidden" />
             </>
@@ -145,7 +131,7 @@ export default function Home() {
         </ul>
 
         <div class="p-4">
-          <Submit reload={get} />
+          <Submit />
         </div>
       </div>
     </main>

@@ -126,3 +126,21 @@ export const useAPI = <
 
   return { res, loading, fire };
 };
+
+export const fetchAPI = async <
+  U extends string & keyof Schema,
+  M extends string & keyof Schema[U],
+>(
+  url: U,
+  method: M,
+  obj: req<U, M>,
+): Promise<res<U, M>> => {
+  const vld = onRoute(url, "POST");
+
+  const body = obj === null ? null : JSON.stringify(vld.req.parse(obj));
+  const headers = { "Content-Type": "application/json" };
+
+  return fetch(new URL(url, BASE_URL), { body, headers, method })
+    .then((res) => res.json())
+    .then((obj) => vld.res.parse(obj));
+};
