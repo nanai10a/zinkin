@@ -1,4 +1,8 @@
 import { Icon as _Icon, IconProps } from "@iconify/react";
 
-// @ts-ignore: ignore type error "cannot be used as a JSX component"
-export const Icon = (props: IconProps) => <_Icon {...props} />;
+export const Icon = (props: IconProps) => {
+  const Icon = _Icon;
+
+  // @ts-ignore: ignore type error "cannot be used as a JSX component"
+  return <Icon {...props} />;
+};
