@@ -187,7 +187,7 @@ impl PostRepository for SqlitePostRepository {
     async fn restore(&self, id: u32) -> anyhow::Result<()> {
         #[rustfmt::skip]
         const QUERY: &str = "UPDATE post_flags \
-                             SET flags = flags ^ 0x01 \
+                             SET flags = ~(~flags | 0x01) \
                              WHERE id = ?";
 
         let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;
