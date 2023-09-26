@@ -135,7 +135,7 @@ export const fetchAPI = async <
   method: M,
   obj: req<U, M>,
 ): Promise<res<U, M>> => {
-  const vld = onRoute(url, "POST");
+  const vld = onRoute(url, method);
 
   const body = obj === null ? null : JSON.stringify(vld.req.parse(obj));
   const headers = { "Content-Type": "application/json" };
