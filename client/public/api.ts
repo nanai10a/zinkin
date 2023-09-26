@@ -1,4 +1,3 @@
-import { useState, useCallback } from "preact/hooks";
 import { z } from "zod";
 
 export interface Post extends z.TypeOf<typeof Post> {}
@@ -38,7 +37,7 @@ type Schema = {
 
 type Validator = { req: z.ZodSchema; res: z.ZodSchema };
 
-const onRoute = (url: string, method: string): Validator => {
+const getValidator = (url: string, method: string): Validator => {
   const routes = [
     [
       /\/posts/,
@@ -80,52 +79,19 @@ const onRoute = (url: string, method: string): Validator => {
   throw new Error("unknown route");
 };
 
-type req<
-  P extends keyof Schema,
-  M extends keyof Schema[P],
-> = Schema[P][M] extends { req: infer R } ? R : never;
+namespace vld {
+  export type req<
+    P extends keyof Schema,
+    M extends keyof Schema[P],
+  > = Schema[P][M] extends { req: infer R } ? R : never;
 
-type res<
-  P extends keyof Schema,
-  M extends keyof Schema[P],
-> = Schema[P][M] extends { res: infer R } ? R : never;
+  export type res<
+    P extends keyof Schema,
+    M extends keyof Schema[P],
+  > = Schema[P][M] extends { res: infer R } ? R : never;
+}
 
 const BASE_URL = "http://localhost:9090";
-
-export const useAPI = <
-  U extends string & keyof Schema,
-  M extends string & keyof Schema[U],
->(
-  url: U,
-  method: M,
-): {
-  res: res<U, M> | null;
-  loading: boolean;
-  fire: (req: req<U, M>) => void;
-} => {
-  const [res, set] = useState<res<U, M> | null>(null);
-  const [loading, resolved] = useState(false);
-
-  const fire = useCallback(
-    (req: unknown) => {
-      const vld = onRoute(url, method);
-
-      const body = req === null ? null : JSON.stringify(vld.req.parse(req));
-      const headers = { "Content-Type": "application/json" };
-
-      resolved(false);
-
-      fetch(new URL(url, BASE_URL), { body, headers, method })
-        .then((res) => res.json())
-        .then((obj) => vld.res.parse(obj))
-        .then((val) => set(val))
-        .then(() => resolved(true));
-    },
-    [set],
-  );
-
-  return { res, loading, fire };
-};
 
 export const fetchAPI = async <
   U extends string & keyof Schema,
@@ -133,11 +99,13 @@ export const fetchAPI = async <
 >(
   url: U,
   method: M,
-  obj: req<U, M>,
-): Promise<res<U, M>> => {
-  const vld = onRoute(url, method);
+  obj: vld.req<U, M>,
+): Promise<vld.res<U, M>> => {
+  const vld = getValidator(url, method);
 
-  const body = obj === null ? null : JSON.stringify(vld.req.parse(obj));
+  const json = JSON.stringify(vld.req.parse(obj));
+  const body = json === "null" ? null : json;
+
   const headers = { "Content-Type": "application/json" };
 
   return fetch(new URL(url, BASE_URL), { body, headers, method })
