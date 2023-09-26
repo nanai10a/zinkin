@@ -1,4 +1,4 @@
-import { lazy, hydrate, prerender as ssr } from "preact-iso";
+import { lazy, hydrate, prerender as ssr, ErrorBoundary } from "preact-iso";
 
 import inline from "@twind/with-react/inline";
 import { tw } from "./twind";
@@ -7,9 +7,9 @@ const Index = lazy(() => import("./index"));
 
 export const App = () => {
   return (
-    <>
+    <ErrorBoundary>
       <Index />
-    </>
+    </ErrorBoundary>
   );
 };
 
