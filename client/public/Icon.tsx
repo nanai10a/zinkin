@@ -1,4 +1,6 @@
-import { Icon as _Icon, IconProps } from "@iconify/react";
+import { Icon as _Icon, IconProps, enableCache } from "@iconify/react";
+
+enableCache("all");
 
 export const Icon = (props: IconProps) => {
   const Icon = _Icon;
