@@ -1,7 +1,11 @@
 import { useCallback, useState } from "preact/hooks";
 
-import { fetchAPI } from "./api";
+import { fetchAPI, Post } from "./api";
 import { posts } from "./posts";
+
+const unshiftPosts = (...val: Post[]) => {
+  posts.value = [...val, ...posts.value];
+};
 
 export const Submit = () => {
   const [text, setText] = useState("");
@@ -16,7 +20,7 @@ export const Submit = () => {
       if (e.ctrlKey && e.key === "Enter") {
         const res = await fetchAPI("/posts", "POST", { content: text });
 
-        posts.value.unshift(res);
+        unshiftPosts(res);
         setText("");
       }
     },
