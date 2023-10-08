@@ -8,8 +8,11 @@ actix-cors = "0.6.4"
 actix-web = { version = "4.4.0", features = ["rustls"] }
 anyhow = "1.0.75"
 chrono = { version = "0.4.28", features = ["serde"] }
+dashmap = "5.5.3"
+jsonwebtoken = "8.3.0"
 pulldown-cmark = "0.9.3"
 rand = "0.8.5"
 serde = { version = "1.0.188", features = ["derive"] }
 sqlx = { version = "0.7.1", features = ["sqlite", "runtime-tokio", "chrono"] }
 tokio = { version = "1.32.0", features = ["full"] }
+webauthn-rs = "0.4.8"
