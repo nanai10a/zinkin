@@ -33,6 +33,9 @@ pub mod utils;
 /// defines repositories of models
 pub mod repos;
 
+/// defines stores of models
+pub mod stores;
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     actix_web::HttpServer::new(move || {
