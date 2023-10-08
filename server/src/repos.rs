@@ -4,6 +4,10 @@ use sqlx::FromRow;
 use crate::utils::*;
 use crate::{models, rows};
 
+mod ext {
+    pub use webauthn_rs::prelude::Passkey;
+}
+
 pub trait PostRepository {
     async fn all(&self) -> anyhow::Result<Vec<models::Post>>;
     async fn find_one(&self, id: u32) -> anyhow::Result<Option<models::Post>>;
@@ -198,4 +202,11 @@ impl PostRepository for SqliteRepository {
 
         Ok(())
     }
+}
+
+pub trait KeyRepository {
+    async fn all(&self) -> anyhow::Result<Vec<ext::Passkey>>;
+    async fn get(&self, id: u32) -> anyhow::Result<ext::Passkey>;
+    async fn push(&self, id: u32, model: ext::Passkey) -> anyhow::Result<()>;
+    async fn remove(&self, id: u32) -> anyhow::Result<()>;
 }
