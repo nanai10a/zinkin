@@ -19,9 +19,9 @@ pub trait PostRepository {
     async fn restore(&self, id: u32) -> anyhow::Result<()>;
 }
 
-pub struct SqlitePostRepository(sqlx::SqlitePool);
+pub struct SqliteRepository(sqlx::SqlitePool);
 
-impl SqlitePostRepository {
+impl SqliteRepository {
     pub async fn new(p: &std::path::Path) -> anyhow::Result<Self> {
         if !std::fs::try_exists(p)? {
             std::fs::write(p, [])?;
@@ -36,13 +36,13 @@ impl SqlitePostRepository {
     }
 }
 
-impl core::ops::Deref for SqlitePostRepository {
+impl core::ops::Deref for SqliteRepository {
     type Target = sqlx::SqlitePool;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
 
-impl PostRepository for SqlitePostRepository {
+impl PostRepository for SqliteRepository {
     async fn all(&self) -> anyhow::Result<Vec<models::Post>> {
         #[rustfmt::skip]
         const QUERY: &str = "SELECT p.*, pf.flags FROM posts AS p \

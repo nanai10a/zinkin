@@ -46,8 +46,8 @@ async fn main() -> anyhow::Result<()> {
 
         actix_web::App::new()
             .wrap(cors)
-            .data_factory(|| repos::SqlitePostRepository::new(std::path::Path::new("zinkin.db")))
-            .service(routes::services::<repos::SqlitePostRepository>())
+            .data_factory(|| repos::SqliteRepository::new(std::path::Path::new("zinkin.db")))
+            .service(routes::services::<repos::SqliteRepository>())
     })
     .bind("0.0.0.0:9090")?
     .run()
