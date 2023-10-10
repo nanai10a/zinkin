@@ -1,3 +1,9 @@
+#![allow(clippy::significant_drop_in_scrutinee)]
+#![allow(clippy::trivially_copy_pass_by_ref)]
+
+use core::any::Any;
+use core::hash::Hash;
+
 use anyhow::Result;
 
 pub trait Store<T> {
@@ -11,4 +17,63 @@ pub trait Entry<T> {
 
     async fn set(self, val: T) -> Result<bool>;
     async fn get(self) -> Result<Option<T>>;
+}
+
+pub trait Dynamic = Any + Send + Sync + 'static;
+
+pub struct InMemoryStore<K>(dashmap::DashMap<K, Box<dyn Dynamic>>);
+
+impl<K: core::cmp::Eq + Hash + Send + Sync> InMemoryStore<K> {
+    pub fn new() -> Self { Self(dashmap::DashMap::new()) }
+}
+
+impl<K: Eq + Hash + Send + Sync> Default for InMemoryStore<K> {
+    fn default() -> Self { Self::new() }
+}
+
+impl<K: Eq + Hash + Send + Sync, T: Dynamic> Store<T> for InMemoryStore<K> {
+    type Key = K;
+
+    async fn entry(&self, key: Self::Key) -> Result<impl Entry<T>> {
+        Ok(InMemoryEntry(self.0.entry(key)))
+    }
+}
+
+pub struct InMemoryEntry<'a, K, V>(dashmap::mapref::entry::Entry<'a, K, V>);
+
+impl<K: Eq + Hash + Send + Sync, T: Dynamic> Entry<T> for InMemoryEntry<'_, K, Box<dyn Dynamic>> {
+    async fn is_empty(&self) -> Result<bool> {
+        use dashmap::mapref::entry::Entry;
+
+        match self.0 {
+            Entry::Occupied(_) => Ok(true),
+            Entry::Vacant(_) => Ok(false),
+        }
+    }
+
+    async fn set(self, val: T) -> Result<bool> {
+        use dashmap::mapref::entry::Entry;
+
+        let is_inserted = match self.0 {
+            Entry::Occupied(_) => false,
+            Entry::Vacant(e) => {
+                e.insert(Box::new(val));
+                true
+            },
+        };
+
+        Ok(is_inserted)
+    }
+
+    async fn get(self) -> Result<Option<T>> {
+        use dashmap::mapref::entry::Entry;
+
+        match self.0 {
+            Entry::Vacant(_) => Ok(None),
+            Entry::Occupied(e) => match e.get().downcast_ref::<T>() {
+                Some(_) => Ok(Some(*e.remove().downcast::<T>().unwrap())),
+                None => Err(anyhow::anyhow!("unmatched type")),
+            },
+        }
+    }
 }
