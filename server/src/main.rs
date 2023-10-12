@@ -7,6 +7,10 @@
 #![allow(clippy::significant_drop_in_scrutinee)]
 #![allow(clippy::trivially_copy_pass_by_ref)]
 //
+// FIXME: currently ignored, but must think about there
+#![allow(async_fn_in_trait)]
+#![allow(clippy::future_not_send)]
+//
 #![feature(iterator_try_collect)]
 #![feature(stmt_expr_attributes)]
 #![feature(slice_as_chunks)]
