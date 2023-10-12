@@ -210,3 +210,33 @@ pub trait KeyRepository {
     async fn push(&self, id: u32, model: ext::Passkey) -> anyhow::Result<()>;
     async fn remove(&self, id: u32) -> anyhow::Result<()>;
 }
+
+impl KeyRepository for SqliteRepository {
+    async fn all(&self) -> anyhow::Result<Vec<ext::Passkey>> {
+        #[rustfmt::skip]
+        const QUERY: &str = "";
+
+        Ok(todo!())
+    }
+
+    async fn get(&self, id: u32) -> anyhow::Result<ext::Passkey> {
+        #[rustfmt::skip]
+        const QUERY: &str = "";
+
+        Ok(todo!())
+    }
+
+    async fn push(&self, id: u32, model: ext::Passkey) -> anyhow::Result<()> {
+        #[rustfmt::skip]
+        const QUERY: &str = "";
+
+        Ok(todo!())
+    }
+
+    async fn remove(&self, id: u32) -> anyhow::Result<()> {
+        #[rustfmt::skip]
+        const QUERY: &str = "";
+
+        Ok(todo!())
+    }
+}
