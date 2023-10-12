@@ -35,7 +35,6 @@ mod uses {
 #[allow(clippy::wildcard_imports)]
 mod posts;
 
-
 use crate::repos::PostRepository;
 
 pub fn services<R: 'static + PostRepository>() -> impl HttpServiceFactory {
