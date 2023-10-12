@@ -16,19 +16,17 @@ pub trait Entry<T> {
     async fn get(self) -> Result<Option<T>>;
 }
 
-pub trait Dynamic = Any + Send + Sync + 'static;
+pub struct InMemoryStore<K>(dashmap::DashMap<K, Box<dyn Any>>);
 
-pub struct InMemoryStore<K>(dashmap::DashMap<K, Box<dyn Dynamic>>);
-
-impl<K: core::cmp::Eq + Hash + Send + Sync> InMemoryStore<K> {
+impl<K: Eq + Hash> InMemoryStore<K> {
     pub fn new() -> Self { Self(dashmap::DashMap::new()) }
 }
 
-impl<K: Eq + Hash + Send + Sync> Default for InMemoryStore<K> {
+impl<K: Eq + Hash> Default for InMemoryStore<K> {
     fn default() -> Self { Self::new() }
 }
 
-impl<K: Eq + Hash + Send + Sync, T: Dynamic> Store<T> for InMemoryStore<K> {
+impl<K: Eq + Hash, T: Any> Store<T> for InMemoryStore<K> {
     type Key = K;
 
     async fn entry(&self, key: Self::Key) -> Result<impl Entry<T>> {
@@ -38,7 +36,7 @@ impl<K: Eq + Hash + Send + Sync, T: Dynamic> Store<T> for InMemoryStore<K> {
 
 pub struct InMemoryEntry<'a, K, V>(dashmap::mapref::entry::Entry<'a, K, V>);
 
-impl<K: Eq + Hash + Send + Sync, T: Dynamic> Entry<T> for InMemoryEntry<'_, K, Box<dyn Dynamic>> {
+impl<K: Eq + Hash, T: Any> Entry<T> for InMemoryEntry<'_, K, Box<dyn Any>> {
     async fn is_empty(&self) -> Result<bool> {
         use dashmap::mapref::entry::Entry;
 
