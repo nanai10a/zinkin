@@ -19,6 +19,7 @@
 #![feature(decl_macro)]
 #![feature(fs_try_exists)]
 #![feature(async_closure)]
+#![feature(never_type)]
 
 /// defines models of domain
 pub mod models;
@@ -40,6 +41,8 @@ pub mod stores;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    let url = "localhost:9090";
+
     actix_web::HttpServer::new(move || {
         let cors = {
             actix_cors::Cors::default()
@@ -52,9 +55,25 @@ async fn main() -> anyhow::Result<()> {
         actix_web::App::new()
             .wrap(cors)
             .data_factory(|| repos::SqliteRepository::new(std::path::Path::new("zinkin.db")))
-            .service(routes::services::<repos::SqliteRepository>())
+            .data_factory(async || Ok::<_, !>(stores::InMemoryStore::<routes::SessionId>::new()))
+            .data_factory(async move || -> anyhow::Result<_> {
+                let url = webauthn_rs::prelude::Url::parse(&format!("http://{url}"))?;
+                let host = url
+                    .host_str()
+                    .ok_or_else(|| anyhow::anyhow!("hostname is none"))?;
+
+                let site = webauthn_rs::WebauthnBuilder::new(host, &url)?.build()?;
+
+                Ok(site)
+            })
+            .service(routes::services::<
+                repos::SqliteRepository,
+                repos::SqliteRepository,
+                stores::InMemoryStore<_>,
+                stores::InMemoryStore<_>,
+            >())
     })
-    .bind("0.0.0.0:9090")?
+    .bind(url)?
     .run()
     .await?;
 

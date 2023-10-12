@@ -4,16 +4,20 @@ mod uses {
     // actix-web: macros (http methods)
     pub use actix_web::{delete, get, patch, post, put};
     // actix-web: frequently used things
-    pub use actix_web::{web, Responder};
+    pub use actix_web::{web, HttpResponse, Responder};
     // serde: serialization / deserialization
     pub use serde::{Deserialize, Serialize};
     // sqlx: database
     pub use sqlx::{Executor, FromRow, Row};
+    // webauthn-rs: authentication
+    pub use webauthn_rs::prelude as wan;
 
     // crate: models
     pub use crate::models;
     // crate: repositories
-    pub use crate::repos::PostRepository;
+    pub use crate::repos::{KeyRepository, PostRepository};
+    // crate: stores
+    pub use crate::stores::{Entry, Store};
     // crate: utilities
     pub use crate::utils::*;
 
@@ -31,21 +35,36 @@ mod uses {
     pub use super::models::{DateTime, Post, PostContent};
 }
 
-#[allow(clippy::future_not_send)]
 #[allow(clippy::wildcard_imports)]
 mod posts;
 
-use crate::repos::PostRepository;
+#[allow(clippy::wildcard_imports)]
+mod auth;
 
-pub fn services<R: 'static + PostRepository>() -> impl HttpServiceFactory {
-    use actix_web::web;
+pub fn services<
+    PR: 'static + crate::repos::PostRepository,
+    KR: 'static + crate::repos::KeyRepository,
+    RS: 'static + crate::stores::Store<uses::wan::PasskeyRegistration, Key = SessionId>,
+    AS: 'static + crate::stores::Store<uses::wan::PasskeyAuthentication, Key = SessionId>,
+>() -> impl actix_web::dev::HttpServiceFactory {
+    use actix_web::{services, web};
 
-    vec![
+    let posts = services![
         web::resource("/posts")
-            .route(web::get().to(posts::get::<R>))
-            .route(web::post().to(posts::create::<R>)),
+            .route(web::get().to(posts::get::<PR>))
+            .route(web::post().to(posts::create::<PR>)),
         web::resource("/posts/{id}")
-            .route(web::get().to(posts::_id_::get::<R>))
-            .route(web::patch().to(posts::_id_::update::<R>)),
-    ]
+            .route(web::get().to(posts::_id_::get::<PR>))
+            .route(web::patch().to(posts::_id_::update::<PR>)),
+    ];
+
+    let auth = services![
+        web::resource("/auth/register").route(web::post().to(auth::register::<KR, RS>)),
+        web::resource("/auth/claim").route(web::post().to(auth::claim::<KR, AS>)),
+        web::resource("/auth/refresh").route(web::post().to(auth::refresh)),
+    ];
+
+    services![posts, auth]
 }
+
+pub use auth::SessionId;
