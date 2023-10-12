@@ -1,6 +1,3 @@
-#![allow(clippy::significant_drop_in_scrutinee)]
-#![allow(clippy::trivially_copy_pass_by_ref)]
-
 use core::any::Any;
 use core::hash::Hash;
 

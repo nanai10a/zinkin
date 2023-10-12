@@ -4,6 +4,8 @@
 #![allow(clippy::missing_const_for_fn)]
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::must_use_candidate)]
+#![allow(clippy::significant_drop_in_scrutinee)]
+#![allow(clippy::trivially_copy_pass_by_ref)]
 //
 #![feature(iterator_try_collect)]
 #![feature(stmt_expr_attributes)]
