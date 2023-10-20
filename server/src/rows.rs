@@ -63,3 +63,29 @@ impl FromModel for Post {
         })
     }
 }
+
+#[derive(sqlx::FromRow)]
+pub struct Key {
+    pub content: Vec<u8>,
+}
+
+impl IntoModel for Key {
+    type Model = webauthn_rs::prelude::Passkey;
+
+    fn into_model(self) -> anyhow::Result<Self::Model> {
+        let Self { content } = self;
+
+        Ok(rmp_serde::from_slice(&content)?)
+    }
+}
+
+impl FromModel for Key {
+    type Model = webauthn_rs::prelude::Passkey;
+
+    fn from_model(model: Self::Model) -> anyhow::Result<Self>
+    where Self: Sized {
+        let content = rmp_serde::to_vec(&model)?;
+
+        Ok(Self { content })
+    }
+}

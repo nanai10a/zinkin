@@ -214,29 +214,63 @@ pub trait KeyRepository {
 impl KeyRepository for SqliteRepository {
     async fn all(&self) -> anyhow::Result<Vec<ext::Passkey>> {
         #[rustfmt::skip]
-        const QUERY: &str = "";
+        const QUERY: &str = "SELECT content FROM keys";
 
-        Ok(todo!())
+        let models = sqlx::query(QUERY)
+            .fetch_all(&**self)
+            .await?
+            .iter()
+            .map(rows::Key::from_row)
+            .try_map(rows::Key::into_model)
+            .map(|r| r.map_err(anyhow::Error::new).flatten())
+            .try_collect::<Vec<_>>()?;
+
+        Ok(models)
     }
 
     async fn get(&self, id: u32) -> anyhow::Result<Option<ext::Passkey>> {
         #[rustfmt::skip]
-        const QUERY: &str = "";
+        const QUERY: &str = "SELECT content FROM keys WHERE id = ?";
 
-        Ok(todo!())
+        let model = match sqlx::query(QUERY).bind(id).fetch_one(&**self).await {
+            Ok(ref row) => rows::Key::from_row(row)?.into_model()?,
+            Err(sqlx::Error::RowNotFound) => return Ok(None),
+            Err(err) => anyhow::bail!(err),
+        };
+
+        Ok(Some(model))
     }
 
     async fn push(&self, id: u32, model: ext::Passkey) -> anyhow::Result<()> {
         #[rustfmt::skip]
-        const QUERY: &str = "";
+        const QUERY: &str = "INSERT INTO keys (id, content) \
+                             VALUES (?, ?)";
 
-        Ok(todo!())
+        let rows::Key { content } = rows::Key::from_model(model)?;
+
+        let result = sqlx::query(QUERY)
+            .bind(id)
+            .bind(content)
+            .execute(&**self)
+            .await?;
+
+        if result.rows_affected() != 1 {
+            anyhow::bail!("failed to insert into keys");
+        }
+
+        Ok(())
     }
 
     async fn remove(&self, id: u32) -> anyhow::Result<()> {
         #[rustfmt::skip]
-        const QUERY: &str = "";
+        const QUERY: &str = "DELETE FROM keys WHERE id = ?";
 
-        Ok(todo!())
+        let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;
+
+        if result.rows_affected() != 1 {
+            anyhow::bail!("failed to delete from keys");
+        }
+
+        Ok(())
     }
 }
