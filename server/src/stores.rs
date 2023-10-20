@@ -43,8 +43,8 @@ impl<K: Eq + Hash, T: Any + Send + Sync> Entry<T>
         use dashmap::mapref::entry::Entry;
 
         match self.0 {
-            Entry::Occupied(_) => Ok(true),
-            Entry::Vacant(_) => Ok(false),
+            Entry::Occupied(_) => Ok(false),
+            Entry::Vacant(_) => Ok(true),
         }
     }
 
