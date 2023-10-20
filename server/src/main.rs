@@ -45,6 +45,8 @@ pub mod stores;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    env_logger::init();
+
     let repo = actix_web::web::Data::new({
         repos::SqliteRepository::new(std::path::Path::new("zinkin.db")).await?
     });
@@ -74,6 +76,7 @@ async fn main() -> anyhow::Result<()> {
 
         actix_web::App::new()
             .wrap(cors)
+            .wrap(actix_web::middleware::Logger::default())
             .app_data(repo.clone())
             .app_data(store.clone())
             .app_data(site.clone())
