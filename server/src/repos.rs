@@ -206,7 +206,7 @@ impl PostRepository for SqliteRepository {
 
 pub trait KeyRepository {
     async fn all(&self) -> anyhow::Result<Vec<ext::Passkey>>;
-    async fn get(&self, id: u32) -> anyhow::Result<ext::Passkey>;
+    async fn get(&self, id: u32) -> anyhow::Result<Option<ext::Passkey>>;
     async fn push(&self, id: u32, model: ext::Passkey) -> anyhow::Result<()>;
     async fn remove(&self, id: u32) -> anyhow::Result<()>;
 }
@@ -219,7 +219,7 @@ impl KeyRepository for SqliteRepository {
         Ok(todo!())
     }
 
-    async fn get(&self, id: u32) -> anyhow::Result<ext::Passkey> {
+    async fn get(&self, id: u32) -> anyhow::Result<Option<ext::Passkey>> {
         #[rustfmt::skip]
         const QUERY: &str = "";
 
