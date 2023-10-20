@@ -294,7 +294,7 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
 
                 assert!(store.entry(id).await?.set(pr).await?);
 
-                HttpResponse::Continue()
+                HttpResponse::Accepted()
                     .insert_header(XAuthProgress::Challenging(id))
                     .json(ccr)
             },
