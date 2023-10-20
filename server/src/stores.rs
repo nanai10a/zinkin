@@ -16,7 +16,7 @@ pub trait Entry<T> {
     async fn get(self) -> Result<Option<T>>;
 }
 
-pub struct InMemoryStore<K>(dashmap::DashMap<K, Box<dyn Any>>);
+pub struct InMemoryStore<K>(dashmap::DashMap<K, Box<dyn Any + Send + Sync>>);
 
 impl<K: Eq + Hash> InMemoryStore<K> {
     pub fn new() -> Self { Self(dashmap::DashMap::new()) }
@@ -26,7 +26,7 @@ impl<K: Eq + Hash> Default for InMemoryStore<K> {
     fn default() -> Self { Self::new() }
 }
 
-impl<K: Eq + Hash, T: Any> Store<T> for InMemoryStore<K> {
+impl<K: Eq + Hash, T: Any + Send + Sync> Store<T> for InMemoryStore<K> {
     type Key = K;
 
     async fn entry(&self, key: Self::Key) -> Result<impl Entry<T>> {
@@ -36,7 +36,9 @@ impl<K: Eq + Hash, T: Any> Store<T> for InMemoryStore<K> {
 
 pub struct InMemoryEntry<'a, K, V>(dashmap::mapref::entry::Entry<'a, K, V>);
 
-impl<K: Eq + Hash, T: Any> Entry<T> for InMemoryEntry<'_, K, Box<dyn Any>> {
+impl<K: Eq + Hash, T: Any + Send + Sync> Entry<T>
+    for InMemoryEntry<'_, K, Box<dyn Any + Send + Sync>>
+{
     async fn is_empty(&self) -> Result<bool> {
         use dashmap::mapref::entry::Entry;
 
