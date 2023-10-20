@@ -45,7 +45,23 @@ pub mod stores;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    let url = "localhost:9090";
+    let repo = actix_web::web::Data::new({
+        repos::SqliteRepository::new(std::path::Path::new("zinkin.db")).await?
+    });
+
+    #[rustfmt::skip]
+    let store = actix_web::web::Data::new({
+        stores::InMemoryStore::<routes::SessionId>::new()
+    });
+
+    let site = actix_web::web::Data::new({
+        let url = webauthn_rs::prelude::Url::parse("https://localhost:9090")?;
+        let host = url
+            .host_str()
+            .ok_or_else(|| anyhow::anyhow!("hostname is none"))?;
+
+        webauthn_rs::WebauthnBuilder::new(host, &url)?.build()?
+    });
 
     actix_web::HttpServer::new(move || {
         let cors = {
@@ -58,18 +74,9 @@ async fn main() -> anyhow::Result<()> {
 
         actix_web::App::new()
             .wrap(cors)
-            .data_factory(|| repos::SqliteRepository::new(std::path::Path::new("zinkin.db")))
-            .data_factory(async || Ok::<_, !>(stores::InMemoryStore::<routes::SessionId>::new()))
-            .data_factory(async move || -> anyhow::Result<_> {
-                let url = webauthn_rs::prelude::Url::parse(&format!("http://{url}"))?;
-                let host = url
-                    .host_str()
-                    .ok_or_else(|| anyhow::anyhow!("hostname is none"))?;
-
-                let site = webauthn_rs::WebauthnBuilder::new(host, &url)?.build()?;
-
-                Ok(site)
-            })
+            .app_data(repo.clone())
+            .app_data(store.clone())
+            .app_data(site.clone())
             .service(routes::services::<
                 repos::SqliteRepository,
                 repos::SqliteRepository,
@@ -77,7 +84,7 @@ async fn main() -> anyhow::Result<()> {
                 stores::InMemoryStore<_>,
             >())
     })
-    .bind(url)?
+    .bind("0.0.0.0:9090")?
     .run()
     .await?;
 
