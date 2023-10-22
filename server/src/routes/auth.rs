@@ -210,13 +210,13 @@ mod token {
     impl Token {
         pub fn issue_refresh() -> Self {
             Self::Refresh {
-                inner: Claims::new(),
+                inner: Claims::new(core::time::Duration::from_secs(60 * 60 * 24 * 4)),
             }
         }
 
         pub fn issue_session() -> Self {
             Self::Session {
-                inner: Claims::new(),
+                inner: Claims::new(core::time::Duration::from_secs(60 * 60)),
             }
         }
     }
@@ -276,9 +276,11 @@ mod token {
     }
 
     impl Claims {
-        fn new() -> Self {
-            let (from, to) = available_time(core::time::Duration::from_secs(60 * 60 * 24 * 3));
-            let uuid = webauthn_rs::prelude::Uuid::new_v4().to_string();
+        fn new(duration: core::time::Duration) -> Self {
+            use webauthn_rs::prelude::Uuid;
+
+            let (from, to) = available_time(duration);
+            let uuid = Uuid::new_v4().to_string();
 
             Self {
                 iss: HOST_NAME.clone(),
