@@ -66,7 +66,14 @@ mod header {
         fn name() -> hh::HeaderName { hh::HeaderName::from_static("x-auth-progress") }
 
         fn parse<M: HttpMessage>(msg: &M) -> Result<Self, ParseError> {
-            hh::from_one_raw_str(msg.headers().get(Self::name()))
+            let Some(line) = msg.headers().get(Self::name()) else {
+                return Ok(Self::Unspecified);
+            };
+
+            line.to_str()
+                .map_err(|_| ParseError::Header)?
+                .parse()
+                .map_err(|_| ParseError::Header)
         }
     }
 
