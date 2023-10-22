@@ -72,11 +72,12 @@ async fn main() -> anyhow::Result<()> {
             .max_age(3600);
 
         actix_web::App::new()
-            .wrap(cors)
-            .wrap(actix_web::middleware::Logger::default())
             .app_data(repo.clone())
             .app_data(store.clone())
             .app_data(site.clone())
+            .wrap(actix_web::middleware::Logger::default())
+            .wrap(cors)
+            .wrap(actix_web::middleware::NormalizePath::trim())
             .service(routes::services::<
                 repos::SqliteRepository,
                 repos::SqliteRepository,
