@@ -318,9 +318,9 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
                     .collect::<Vec<_>>();
 
                 let (ccr, pr) = site.start_passkey_registration(
-                    wan::Uuid::nil(),
+                    wan::Uuid::new_v4(),
                     "owner",
-                    "Owner",
+                    "owner",
                     Some(excludes),
                 )?;
 
