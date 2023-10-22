@@ -409,8 +409,6 @@ pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key 
                     Ok(result) => result,
                 };
 
-                dbg!(result);
-
                 let token = token::Token::issue_refresh().encode()?;
 
                 HttpResponse::Ok().body(token)
