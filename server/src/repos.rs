@@ -26,12 +26,12 @@ pub trait PostRepository {
 pub struct SqliteRepository(sqlx::SqlitePool);
 
 impl SqliteRepository {
-    pub async fn new(p: &std::path::Path) -> anyhow::Result<Self> {
-        if !std::fs::try_exists(p)? {
-            std::fs::write(p, [])?;
+    pub async fn new(p: impl AsRef<std::path::Path>) -> anyhow::Result<Self> {
+        if !std::fs::try_exists(p.as_ref())? {
+            std::fs::write(&p, [])?;
         }
 
-        let url = "sqlite://".to_string() + &p.to_string_lossy();
+        let url = "sqlite://".to_string() + &p.as_ref().to_string_lossy();
 
         let db = sqlx::SqlitePool::connect(&url).await?;
         sqlx::migrate!().run(&db).await?;

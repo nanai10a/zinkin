@@ -22,6 +22,7 @@
 #![feature(fs_try_exists)]
 #![feature(async_closure)]
 #![feature(never_type)]
+#![feature(lazy_cell)]
 
 /// defines models of domain
 pub mod models;
@@ -41,21 +42,31 @@ pub mod repos;
 /// defines stores of models
 pub mod stores;
 
+pub mod envs {
+    use std::sync::LazyLock;
+
+    macro dyn_env($name:ident) {
+        pub static $name: LazyLock<&str> =
+            LazyLock::new(|| std::env::var(stringify!($name)).unwrap().leak());
+    }
+
+    dyn_env!(HOST_ADDR);
+    dyn_env!(HOST_URL);
+
+    dyn_env!(DB_URL);
+
+    dyn_env!(JWT_KEY);
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     env_logger::init();
 
-    let repo = actix_web::web::Data::new({
-        repos::SqliteRepository::new(std::path::Path::new("zinkin.db")).await?
-    });
-
-    #[rustfmt::skip]
-    let store = actix_web::web::Data::new({
-        stores::InMemoryStore::<routes::SessionId>::new()
-    });
+    let repo = actix_web::web::Data::new(repos::SqliteRepository::new(*envs::DB_URL).await?);
+    let store = actix_web::web::Data::new(stores::InMemoryStore::<routes::SessionId>::new());
 
     let site = actix_web::web::Data::new({
-        let url = webauthn_rs::prelude::Url::parse("https://localhost:9090")?;
+        let url = webauthn_rs::prelude::Url::parse(*envs::HOST_URL)?;
         let host = url
             .host_str()
             .ok_or_else(|| anyhow::anyhow!("hostname is none"))?;
@@ -85,7 +96,7 @@ async fn main() -> anyhow::Result<()> {
                 stores::InMemoryStore<_>,
             >())
     })
-    .bind("0.0.0.0:9090")?
+    .bind(*envs::HOST_ADDR)?
     .run()
     .await?;
 

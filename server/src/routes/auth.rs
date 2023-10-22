@@ -143,20 +143,46 @@ mod token {
         }
     }
 
+    mod key {
+        use std::sync::LazyLock;
+
+        use base64::prelude::{Engine, BASE64_STANDARD as engine};
+        use jsonwebtoken as jwt;
+
+        pub static ENCODE: LazyLock<jwt::EncodingKey> = LazyLock::new(|| {
+            let raw = engine.decode(*crate::envs::JWT_KEY).unwrap();
+            jwt::EncodingKey::from_ed_der(&raw)
+        });
+
+        pub static DECODE: LazyLock<jwt::DecodingKey> = LazyLock::new(|| {
+            let raw = engine.decode(*crate::envs::JWT_KEY).unwrap();
+            jwt::DecodingKey::from_ed_der(&raw)
+        });
+    }
+
+    use std::sync::LazyLock;
+    static HOST_NAME: LazyLock<String> = LazyLock::new(|| {
+        crate::envs::HOST_URL
+            .parse::<url::Url>()
+            .unwrap()
+            .host_str()
+            .unwrap()
+            .to_owned()
+    });
+
     impl Token {
         pub fn encode(&self) -> anyhow::Result<String> {
             use jsonwebtoken as jwt;
 
             let header = jwt::Header::new(jwt::Algorithm::EdDSA);
-            let key = jwt::EncodingKey::from_ed_pem(&std::fs::read("key.pem")?)?;
 
-            Ok(jwt::encode(&header, self, &key)?)
+            Ok(jwt::encode(&header, self, &key::ENCODE)?)
         }
 
         pub fn decode(token: &str) -> anyhow::Result<Self> {
             use jsonwebtoken as jwt;
 
-            let validation = {
+            static VALIDATION: LazyLock<jwt::Validation> = LazyLock::new(|| {
                 let mut v = jwt::Validation::new(jwt::Algorithm::EdDSA);
 
                 let fields = ["iss", "sub", "aud", "exp", "iat", "jti"]
@@ -166,13 +192,12 @@ mod token {
                 v.required_spec_claims.extend(fields);
 
                 v.set_audience(&["client"]);
-                v.set_issuer(&["localhost"]);
+                v.set_issuer(&[&*HOST_NAME]);
 
                 v
-            };
+            });
 
-            let key = jwt::DecodingKey::from_ed_pem(&std::fs::read("key.pem")?)?;
-            let data = jwt::decode::<Self>(token, &key, &validation)?;
+            let data = jwt::decode::<Self>(token, &key::DECODE, &VALIDATION)?;
 
             if data.claims.iat < NumericDate::now() {
                 anyhow::bail!("token is issued in the future?!");
@@ -256,7 +281,7 @@ mod token {
             let uuid = webauthn_rs::prelude::Uuid::new_v4().to_string();
 
             Self {
-                iss: "localhost".to_owned(),
+                iss: HOST_NAME.clone(),
                 aud: "client".to_owned(),
                 exp: to,
                 iat: from,
