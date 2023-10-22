@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 actix-cors = "0.6.4"
-actix-web = { version = "4.4.0", features = ["rustls"] }
+actix-web = { version = "4.4.0", features = ["cookie"] }
 anyhow = "1.0.75"
 base64 = "0.21.4"
 chrono = { version = "0.4.28", features = ["serde"] }
