@@ -60,7 +60,7 @@ pub mod envs {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    env_logger::init();
+    tracing_subscriber::fmt().pretty().init();
 
     let repo = actix_web::web::Data::new(repos::SqliteRepository::new(*envs::DB_URL).await?);
     let store = actix_web::web::Data::new(stores::InMemoryStore::<routes::SessionId>::new());
@@ -86,7 +86,7 @@ async fn main() -> anyhow::Result<()> {
             .app_data(repo.clone())
             .app_data(store.clone())
             .app_data(site.clone())
-            .wrap(actix_web::middleware::Logger::default())
+            .wrap(tracing_actix_web::TracingLogger::default())
             .wrap(cors)
             .wrap(actix_web::middleware::NormalizePath::trim())
             .service(routes::services::<
