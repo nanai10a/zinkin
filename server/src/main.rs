@@ -23,6 +23,7 @@
 #![feature(async_closure)]
 #![feature(never_type)]
 #![feature(lazy_cell)]
+#![feature(impl_trait_in_assoc_type)]
 
 /// defines models of domain
 pub mod models;

@@ -288,6 +288,28 @@ mod cookies {
     }
 }
 
+trait Apply {
+    fn apply<I>(
+        &mut self,
+        iter: impl Iterator<Item = I>,
+        f: impl Fn(&mut Self, I) -> &mut Self,
+    ) -> &mut Self;
+}
+
+impl<T> Apply for T {
+    fn apply<I>(
+        mut self: &mut Self,
+        iter: impl Iterator<Item = I>,
+        f: impl Fn(&mut Self, I) -> &mut Self,
+    ) -> &mut Self {
+        for item in iter {
+            self = f(self, item);
+        }
+
+        self
+    }
+}
+
 macro try_into_responder($block:block) {{
     use std::error::Error;
 
@@ -313,11 +335,11 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
     store: web::Data<RS>,
     site: web::Data<wan::Webauthn>,
     data: web::Json<Option<wan::RegisterPublicKeyCredential>>,
-    prgs: web::Header<XAuthProgress>,
+    mut ck: Cookies,
 ) -> impl Responder {
-    let result: anyhow::Result<_> = try {
-        match (&*prgs, &*data) {
-            (XAuthProgress::Unspecified, None) => {
+    try_into_responder!({
+        match (ck.status, &*data) {
+            (None, None) => {
                 let excludes = repo
                     .all()
                     .await?
@@ -336,18 +358,18 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
 
                 assert!(store.entry(id).await?.set(pr).await?);
 
+                ck.status.replace(id);
+
                 HttpResponse::Accepted()
-                    .insert_header(XAuthProgress::Challenging(id))
+                    .apply(ck.as_cookies()?, |r, c| r.cookie(c))
                     .json(ccr)
             },
 
-            (XAuthProgress::Challenging(id), Some(data)) => {
-                let pr = store
-                    .entry(*id)
-                    .await?
-                    .get()
-                    .await?
-                    .ok_or_else(|| anyhow::anyhow!("registration isn't found"))?;
+            (Some(id), Some(data)) => {
+                let pr =
+                    store.entry(id).await?.get().await?.ok_or_else(|| {
+                        actix_web::error::ErrorBadRequest("registration isn't found")
+                    })?;
 
                 let result = site.finish_passkey_registration(data, &pr);
 
@@ -355,23 +377,16 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
                     repo.push(rand::random(), p.clone()).await?;
                 }
 
-                HttpResponse::Ok().json(result.is_ok())
+                ck.status.take();
+
+                HttpResponse::Ok()
+                    .apply(ck.as_cookies()?, |r, c| r.cookie(c))
+                    .json(result.is_ok())
             },
 
-            _ => HttpResponse::BadRequest().body(""),
+            _ => HttpResponse::BadRequest().finish(),
         }
-    };
-
-    result_as_response!(result)
-}
-
-// FIXME: we need `break` in try block
-macro try_loop($block:block) {
-    try {
-        loop {
-            break $block;
-        }
-    }
+    })
 }
 
 pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key = SessionId>>(
@@ -379,20 +394,19 @@ pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key 
     store: web::Data<AS>,
     site: web::Data<wan::Webauthn>,
     data: web::Json<Option<wan::PublicKeyCredential>>,
-    prgs: web::Header<XAuthProgress>,
-    auth: web::Header<Authorization>,
+    mut ck: Cookies,
 ) -> impl Responder {
-    let result: anyhow::Result<_> = try_loop! {{
-        if let Some(token) = &**auth {
-            break match token {
-                token::Token::Session { .. } => HttpResponse::Ok().body(""),
-                token::Token::Refresh { .. } =>
-                    HttpResponse::Ok().body(token::Token::issue_refresh().encode()?),
-            };
+    try_into_responder!({
+        if let Some(ref mut token) = ck.refresh {
+            *token = token::Token::issue_refresh();
+
+            return HttpResponse::Ok()
+                .apply(ck.as_cookies()?, |r, c| r.cookie(c))
+                .finish();
         }
 
-        match (&*prgs, &*data) {
-            (XAuthProgress::Unspecified, None) => {
+        match (ck.status, &*data) {
+            (None, None) => {
                 let keys = repo.all().await?;
 
                 let (rcr, pa) = site.start_passkey_authentication(&keys)?;
@@ -401,45 +415,49 @@ pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key 
 
                 assert!(store.entry(id).await?.set(pa).await?);
 
-                HttpResponse::Continue()
-                    .insert_header(XAuthProgress::Challenging(id))
+                ck.status.replace(id);
+
+                HttpResponse::Accepted()
+                    .apply(ck.as_cookies()?, |r, c| r.cookie(c))
                     .json(rcr)
             },
 
-            (XAuthProgress::Challenging(id), Some(data)) => {
-                let pa = match store.entry(*id).await?.get().await? {
-                    None => break HttpResponse::BadRequest().body(""),
+            (Some(id), Some(data)) => {
+                let pa = match store.entry(id).await?.get().await? {
+                    None => return HttpResponse::BadRequest().finish(),
                     Some(pa) => pa,
                 };
 
-                let result = match site.finish_passkey_authentication(data, &pa) {
-                    Err(_) => break HttpResponse::Ok().body(""),
-                    Ok(result) => result,
-                };
+                let result = site.finish_passkey_authentication(data, &pa);
 
-                let token = token::Token::issue_refresh().encode()?;
+                if let Ok(_) = result {
+                    let token = token::Token::issue_refresh();
+                    ck.refresh.replace(token);
+                }
 
-                HttpResponse::Ok().body(token)
+                ck.status.take();
+
+                HttpResponse::Ok()
+                    .apply(ck.as_cookies()?, |r, c| r.cookie(c))
+                    .finish()
             },
 
-            _ => HttpResponse::BadRequest().body(""),
+            _ => HttpResponse::BadRequest().finish(),
         }
-    }};
-
-    result_as_response!(result)
+    })
 }
 
-pub async fn refresh(token: web::Header<Authorization>) -> impl Responder {
-    let result: anyhow::Result<_> = try {
-        match &**token {
-            None => HttpResponse::Forbidden().body(""),
-
-            Some(token::Token::Session { .. }) => HttpResponse::Ok().body(""),
-
-            Some(token::Token::Refresh { .. }) =>
-                HttpResponse::Ok().body(token::Token::issue_session().encode()?),
+pub async fn refresh(mut ck: Cookies) -> impl Responder {
+    try_into_responder!({
+        match ck.refresh {
+            None => HttpResponse::Unauthorized().finish(),
+            Some(_) => {
+                let token = token::Token::issue_session();
+                ck.refresh.replace(token);
+                HttpResponse::Ok()
+                    .apply(ck.as_cookies()?, |r, c| r.cookie(c))
+                    .finish()
+            },
         }
-    };
-
-    result_as_response!(result)
+    })
 }
