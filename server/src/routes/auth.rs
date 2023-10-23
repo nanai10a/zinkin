@@ -8,123 +8,6 @@ impl SessionId {
     pub fn new() -> Self { Self(rand::random()) }
 }
 
-use header::*;
-mod header {
-    use core::fmt::Display;
-    use core::ops::Deref;
-    use core::str::FromStr;
-
-    use actix_web::error::ParseError;
-    use actix_web::http::header as hh;
-    use actix_web::http::header::{Header, TryIntoHeaderValue};
-    use actix_web::HttpMessage;
-
-    use super::token::Token;
-    use super::SessionId;
-
-    pub enum XAuthProgress {
-        Unspecified,
-        Challenging(SessionId),
-    }
-
-    impl FromStr for XAuthProgress {
-        type Err = anyhow::Error;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            if s.is_empty() {
-                return Ok(Self::Unspecified);
-            }
-
-            match s.to_lowercase().split_once(' ') {
-                Some(("challenging", id)) => match u128::from_str_radix(id, 16) {
-                    Ok(id) => Ok(Self::Challenging(SessionId(id))),
-                    Err(e) => Err(anyhow::anyhow!("parse error: {e}")),
-                },
-                Some((..)) | None => Err(anyhow::anyhow!("invalid progress specifier")),
-            }
-        }
-    }
-
-    impl Display for XAuthProgress {
-        fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-            match self {
-                Self::Unspecified => write!(f, ""),
-                Self::Challenging(id) => write!(f, "challenging {:32x}", id.0),
-            }
-        }
-    }
-
-    impl TryIntoHeaderValue for XAuthProgress {
-        type Error = hh::InvalidHeaderValue;
-
-        fn try_into_value(self) -> Result<hh::HeaderValue, Self::Error> {
-            hh::HeaderValue::from_maybe_shared(self.to_string())
-        }
-    }
-
-    impl Header for XAuthProgress {
-        fn name() -> hh::HeaderName { hh::HeaderName::from_static("x-auth-progress") }
-
-        fn parse<M: HttpMessage>(msg: &M) -> Result<Self, ParseError> {
-            let Some(line) = msg.headers().get(Self::name()) else {
-                return Ok(Self::Unspecified);
-            };
-
-            line.to_str()
-                .map_err(|_| ParseError::Header)?
-                .parse()
-                .map_err(|_| ParseError::Header)
-        }
-    }
-
-    pub struct Authorization(pub Option<Token>);
-
-    impl Deref for Authorization {
-        type Target = Option<Token>;
-
-        fn deref(&self) -> &Self::Target { &self.0 }
-    }
-
-    impl FromStr for Authorization {
-        type Err = anyhow::Error;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            if s.is_empty() {
-                return Ok(Self(None));
-            }
-
-            let Some(cred) = s.strip_prefix("Bearer ") else {
-                anyhow::bail!("invalid authorization");
-            };
-
-            Ok(Self(Some(Token::decode(cred)?)))
-        }
-    }
-
-    impl TryIntoHeaderValue for Authorization {
-        type Error = hh::InvalidHeaderValue;
-
-        fn try_into_value(self) -> Result<hh::HeaderValue, Self::Error> {
-            let Some(token) = self.0 else {
-                return Ok(hh::HeaderValue::from_static(""));
-            };
-
-            // FIXME: error handling
-            let value = format!("Bearer {}", token.encode().unwrap());
-
-            hh::HeaderValue::from_maybe_shared(value)
-        }
-    }
-
-    impl Header for Authorization {
-        fn name() -> hh::HeaderName { hh::HeaderName::from_static("authorization") }
-
-        fn parse<M: HttpMessage>(msg: &M) -> Result<Self, ParseError> {
-            hh::from_one_raw_str(msg.headers().get(Self::name()))
-        }
-    }
-}
-
 mod token {
     use serde::{Deserialize, Serialize};
 
@@ -148,6 +31,10 @@ mod token {
                 Self::Session { .. } => "session",
             }
         }
+
+        pub fn is_refresh(&self) -> bool { matches!(self, Self::Refresh { .. }) }
+
+        pub fn is_session(&self) -> bool { matches!(self, Self::Session { .. }) }
     }
 
     mod key {
@@ -168,7 +55,7 @@ mod token {
     }
 
     use std::sync::LazyLock;
-    static HOST_NAME: LazyLock<String> = LazyLock::new(|| {
+    pub static HOST_NAME: LazyLock<String> = LazyLock::new(|| {
         crate::envs::HOST_URL
             .parse::<url::Url>()
             .unwrap()
@@ -296,6 +183,107 @@ mod token {
                 iat: from,
                 jti: uuid,
             }
+        }
+    }
+}
+
+use cookies::Cookies;
+mod cookies {
+    use core::future::Future;
+
+    use actix_web::cookie::Cookie;
+    use actix_web::dev::Payload;
+    use actix_web::{Error, FromRequest, HttpRequest};
+
+    use super::token::Token;
+    use super::SessionId;
+
+    pub struct Cookies {
+        pub refresh: Option<Token>,
+        pub session: Option<Token>,
+        pub status: Option<SessionId>,
+    }
+
+    impl FromRequest for Cookies {
+        type Error = Error;
+
+        type Future = impl Future<Output = Result<Self, Self::Error>>;
+
+        fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
+            let result: Result<Self, Self::Error> = try {
+                let refresh = req
+                    .cookie("refresh")
+                    .and_then(|c| Token::decode(c.value()).ok())
+                    .and_then(|t| t.is_refresh().then_some(t));
+
+                let session = req
+                    .cookie("session")
+                    .and_then(|c| Token::decode(c.value()).ok())
+                    .and_then(|t| t.is_session().then_some(t));
+
+                let status = req
+                    .cookie("status")
+                    .and_then(|c| u128::from_str_radix(c.value(), 16).ok())
+                    .map(SessionId);
+
+                Self {
+                    refresh,
+                    session,
+                    status,
+                }
+            };
+
+            async { result }
+        }
+    }
+
+    use actix_web::cookie::SameSite;
+
+    impl Cookies {
+        pub fn as_cookies(&self) -> anyhow::Result<impl Iterator<Item = Cookie>> {
+            let refresh = if let Some(ref token) = self.refresh {
+                Cookie::build("refresh", token.encode()?)
+                    .domain(super::token::HOST_NAME.clone())
+                    .http_only(true)
+                    .same_site(SameSite::Strict)
+                    .secure(true)
+                    .finish()
+            } else {
+                let mut c = Cookie::new("refresh", "");
+                c.make_removal();
+
+                c
+            };
+
+            let session = if let Some(ref token) = self.session {
+                Cookie::build("session", token.encode()?)
+                    .domain(super::token::HOST_NAME.clone())
+                    .http_only(true)
+                    .same_site(SameSite::Strict)
+                    .secure(true)
+                    .finish()
+            } else {
+                let mut c = Cookie::new("session", "");
+                c.make_removal();
+
+                c
+            };
+
+            let status = if let Some(ref status) = self.status {
+                Cookie::build("status", format!("{:32x}", status.0))
+                    .domain(super::token::HOST_NAME.clone())
+                    .http_only(true)
+                    .same_site(SameSite::Strict)
+                    .secure(true)
+                    .finish()
+            } else {
+                let mut c = Cookie::new("status", "");
+                c.make_removal();
+
+                c
+            };
+
+            Ok([refresh, session, status].into_iter())
         }
     }
 }
