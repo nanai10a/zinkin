@@ -56,7 +56,8 @@ pub mod envs {
 
     dyn_env!(DB_URL);
 
-    dyn_env!(JWT_KEY);
+    dyn_env!(JWT_ENC_KEY);
+    dyn_env!(JWT_DEC_KEY);
 }
 
 #[tokio::main]

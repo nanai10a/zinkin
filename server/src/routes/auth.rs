@@ -44,12 +44,12 @@ mod token {
         use jsonwebtoken as jwt;
 
         pub static ENCODE: LazyLock<jwt::EncodingKey> = LazyLock::new(|| {
-            let raw = engine.decode(*crate::envs::JWT_KEY).unwrap();
+            let raw = engine.decode(*crate::envs::JWT_ENC_KEY).unwrap();
             jwt::EncodingKey::from_ed_der(&raw)
         });
 
         pub static DECODE: LazyLock<jwt::DecodingKey> = LazyLock::new(|| {
-            let raw = engine.decode(*crate::envs::JWT_KEY).unwrap();
+            let raw = engine.decode(*crate::envs::JWT_DEC_KEY).unwrap();
             jwt::DecodingKey::from_ed_der(&raw)
         });
     }
