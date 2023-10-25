@@ -339,7 +339,7 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
 ) -> impl Responder {
     try_into_responder!({
         match (ck.status, &*data) {
-            (None, None) => {
+            (None | Some(_), None) => {
                 let excludes = repo
                     .all()
                     .await?
@@ -384,7 +384,7 @@ pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key
                     .json(result.is_ok())
             },
 
-            _ => HttpResponse::BadRequest().finish(),
+            (None, Some(_)) => HttpResponse::BadRequest().finish(),
         }
     })
 }
@@ -406,7 +406,7 @@ pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key 
         }
 
         match (ck.status, &*data) {
-            (None, None) => {
+            (None | Some(_), None) => {
                 let keys = repo.all().await?;
 
                 let (rcr, pa) = site.start_passkey_authentication(&keys)?;
@@ -442,7 +442,7 @@ pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key 
                     .finish()
             },
 
-            _ => HttpResponse::BadRequest().finish(),
+            (None, Some(_)) => HttpResponse::BadRequest().finish(),
         }
     })
 }
