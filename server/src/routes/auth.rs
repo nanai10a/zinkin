@@ -453,7 +453,7 @@ pub async fn refresh(mut ck: Cookies) -> impl Responder {
             None => HttpResponse::Unauthorized().finish(),
             Some(_) => {
                 let token = token::Token::issue_session();
-                ck.refresh.replace(token);
+                ck.session.replace(token);
                 HttpResponse::Ok()
                     .apply(ck.as_cookies()?, |r, c| r.cookie(c))
                     .finish()
