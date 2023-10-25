@@ -93,7 +93,7 @@ mod token {
 
             let data = jwt::decode::<Self>(token, &key::DECODE, &VALIDATION)?;
 
-            if data.claims.iat < NumericDate::now() {
+            if data.claims.iat > NumericDate::now() {
                 anyhow::bail!("token is issued in the future?!");
             }
 
