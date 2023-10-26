@@ -43,32 +43,46 @@ pub mod repos;
 /// defines stores of models
 pub mod stores;
 
-pub mod envs {
-    use std::sync::LazyLock;
+/// define about authn / authz
+pub mod auth;
 
-    macro dyn_env($name:ident) {
-        pub static $name: LazyLock<&str> =
-            LazyLock::new(|| std::env::var(stringify!($name)).unwrap().leak());
+pub mod vars {
+    macro static_lazy($name:ident, $expr:expr) {
+        pub static $name: std::sync::LazyLock<&str> = std::sync::LazyLock::new(|| $expr);
     }
 
-    dyn_env!(HOST_ADDR);
-    dyn_env!(HOST_URL);
+    macro load_env($name:ident) {
+        static_lazy!($name, std::env::var(stringify!($name)).unwrap().leak());
+    }
 
-    dyn_env!(DB_URL);
+    load_env!(LISTEN_ADDR);
 
-    dyn_env!(JWT_ENC_KEY);
-    dyn_env!(JWT_DEC_KEY);
+    load_env!(SERVE_URL);
+    static_lazy!(SERVE_HOST, {
+        SERVE_URL
+            .parse::<url::Url>()
+            .unwrap()
+            .host_str()
+            .unwrap()
+            .to_owned()
+            .leak()
+    });
+
+    load_env!(DB_URL);
+
+    load_env!(JWT_ENC_KEY);
+    load_env!(JWT_DEC_KEY);
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt().pretty().init();
 
-    let repo = actix_web::web::Data::new(repos::SqliteRepository::new(*envs::DB_URL).await?);
+    let repo = actix_web::web::Data::new(repos::SqliteRepository::new(*vars::DB_URL).await?);
     let store = actix_web::web::Data::new(stores::InMemoryStore::<routes::SessionId>::new());
 
     let site = actix_web::web::Data::new({
-        let url = webauthn_rs::prelude::Url::parse(*envs::HOST_URL)?;
+        let url = webauthn_rs::prelude::Url::parse(*vars::SERVE_URL)?;
         let host = url
             .host_str()
             .ok_or_else(|| anyhow::anyhow!("hostname is none"))?;
@@ -98,7 +112,7 @@ async fn main() -> anyhow::Result<()> {
                 stores::InMemoryStore<_>,
             >())
     })
-    .bind(*envs::HOST_ADDR)?
+    .bind(*vars::LISTEN_ADDR)?
     .run()
     .await?;
 
