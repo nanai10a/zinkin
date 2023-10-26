@@ -42,16 +42,6 @@ mod uses {
         HttpResponse::InternalServerError().finish()
     }}
 
-    pub macro result_as_response($r:expr) {
-        match $r {
-            Ok(v) => web::Either::Right(v),
-            Err(e) => {
-                dbg!(e);
-                web::Either::Left(actix_web::HttpResponse::InternalServerError())
-            },
-        }
-    }
-
     // internal: handle cookie
     pub use super::cookies::{Apply as _, Cookies};
     // internal: models
