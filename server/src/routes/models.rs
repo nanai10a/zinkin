@@ -17,7 +17,7 @@ pub struct PostContent {
     html: String,
 }
 
-impl crate::utils::FromModel for Post {
+impl crate::models::FromModel for Post {
     type Model = crate::models::Post;
 
     fn from_model(model: Self::Model) -> anyhow::Result<Self>

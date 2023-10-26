@@ -27,16 +27,3 @@ fn try_map() {
 
     assert_eq!(v, Ok(vec![2, 3, 4]));
 }
-
-pub trait IntoModel {
-    type Model;
-
-    fn into_model(self) -> anyhow::Result<Self::Model>;
-}
-
-pub trait FromModel {
-    type Model;
-
-    fn from_model(model: Self::Model) -> anyhow::Result<Self>
-    where Self: Sized;
-}

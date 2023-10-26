@@ -14,7 +14,7 @@ mod uses {
     pub use webauthn_rs::prelude as wan;
 
     // crate: models
-    pub use crate::models;
+    pub use crate::models::{self, FromModel as _};
     // crate: repositories
     pub use crate::repos::{KeyRepository, PostRepository};
     // crate: stores

@@ -1,3 +1,16 @@
+pub trait IntoModel {
+    type Model;
+
+    fn into_model(self) -> anyhow::Result<Self::Model>;
+}
+
+pub trait FromModel {
+    type Model;
+
+    fn from_model(model: Self::Model) -> anyhow::Result<Self>
+    where Self: Sized;
+}
+
 pub type DateTime = chrono::DateTime<chrono::FixedOffset>;
 
 pub struct Post {

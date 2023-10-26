@@ -1,7 +1,7 @@
 use sqlx::FromRow;
 
-#[allow(clippy::wildcard_imports)]
-use crate::utils::*;
+use crate::models::{FromModel, IntoModel};
+use crate::utils::IteratorExt;
 use crate::{models, rows};
 
 mod ext {

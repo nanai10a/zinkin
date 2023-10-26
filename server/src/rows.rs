@@ -1,6 +1,3 @@
-#[allow(clippy::wildcard_imports)]
-use crate::utils::*;
-
 type DateTime = chrono::DateTime<chrono::FixedOffset>;
 
 #[derive(sqlx::FromRow)]
@@ -12,7 +9,7 @@ pub struct Post {
     pub flags: u32,
 }
 
-impl IntoModel for Post {
+impl crate::models::IntoModel for Post {
     type Model = crate::models::Post;
 
     fn into_model(self) -> anyhow::Result<Self::Model> {
@@ -36,7 +33,7 @@ impl IntoModel for Post {
     }
 }
 
-impl FromModel for Post {
+impl crate::models::FromModel for Post {
     type Model = crate::models::Post;
 
     #[allow(clippy::identity_op)]
@@ -69,7 +66,7 @@ pub struct Key {
     pub content: Vec<u8>,
 }
 
-impl IntoModel for Key {
+impl crate::models::IntoModel for Key {
     type Model = webauthn_rs::prelude::Passkey;
 
     fn into_model(self) -> anyhow::Result<Self::Model> {
@@ -79,7 +76,7 @@ impl IntoModel for Key {
     }
 }
 
-impl FromModel for Key {
+impl crate::models::FromModel for Key {
     type Model = webauthn_rs::prelude::Passkey;
 
     fn from_model(model: Self::Model) -> anyhow::Result<Self>
