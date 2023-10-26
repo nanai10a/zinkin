@@ -21,6 +21,26 @@ mod uses {
     // crate: utilities
     pub use crate::utils::*;
 
+    pub macro try_into_responder($block:block) {{
+        use std::error::Error;
+
+        let result: Result<HttpResponse, Box<dyn Error>> = try $block;
+
+        let casted = match result {
+            Ok(r) => return r,
+            Err(boxed) => boxed.downcast::<actix_web::Error>(),
+        };
+
+        let any = match casted {
+            Ok(e) => return e.error_response(),
+            Err(e) => e,
+        };
+
+        tracing::error!(%any, "observed uncaught error (respond as 500)");
+
+        HttpResponse::InternalServerError().finish()
+    }}
+
     pub macro result_as_response($r:expr) {
         match $r {
             Ok(v) => web::Either::Right(v),

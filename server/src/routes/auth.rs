@@ -1,3 +1,4 @@
+use crate::auth::Token;
 use crate::routes::uses::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -121,27 +122,6 @@ mod cookies {
     }
 }
 
-macro try_into_responder($block:block) {{
-    use std::error::Error;
-
-    let result: Result<HttpResponse, Box<dyn Error>> = try $block;
-
-    let casted = match result {
-        Ok(r) => return r,
-        Err(boxed) => boxed.downcast::<actix_web::Error>(),
-    };
-
-    let any = match casted {
-        Ok(e) => return e.error_response(),
-        Err(e) => e,
-    };
-
-    tracing::error!(%any, "observed uncaught error (respond as 500)");
-
-    HttpResponse::InternalServerError().finish()
-}}
-
-use crate::auth::Token;
 
 pub async fn register<KR: KeyRepository, RS: Store<wan::PasskeyRegistration, Key = SessionId>>(
     repo: web::Data<KR>,
