@@ -32,41 +32,14 @@ impl Token {
     pub fn is_session(&self) -> bool { matches!(self, Self::Session { .. }) }
 }
 
-use __base64::base64;
-mod __base64 {
-    pub fn base64<T: Overloaded>(val: T) -> T::Output { val.call() }
-
-    pub trait Overloaded: Sized {
-        type Output;
-
-        fn call(self) -> Self::Output;
-    }
-
-    impl Overloaded for &[u8] {
-        type Output = String;
-
-        fn call(self) -> Self::Output {
-            use base64::prelude::{Engine, BASE64_STANDARD as engine};
-            engine.encode(self)
-        }
-    }
-
-    impl Overloaded for &str {
-        type Output = Vec<u8>;
-
-        fn call(self) -> Self::Output {
-            use base64::prelude::{Engine, BASE64_STANDARD as engine};
-            engine.decode(self).unwrap()
-        }
-    }
-}
-
 impl Token {
     pub fn encode(&self) -> anyhow::Result<String> {
         use jsonwebtoken as jwt;
 
         let key = eval_once!(jwt::EncodingKey, {
-            let raw = base64(*crate::vars::JWT_ENC_KEY);
+            use base64::prelude::{Engine, BASE64_STANDARD as engine};
+
+            let raw = engine.decode(*crate::vars::JWT_ENC_KEY).unwrap();
             jwt::EncodingKey::from_ed_der(&raw)
         });
 
@@ -81,7 +54,9 @@ impl Token {
         use jsonwebtoken as jwt;
 
         let key = eval_once!(jwt::DecodingKey, {
-            let raw = base64(*crate::vars::JWT_DEC_KEY);
+            use base64::prelude::{Engine, BASE64_STANDARD as engine};
+
+            let raw = engine.decode(*crate::vars::JWT_DEC_KEY).unwrap();
             jwt::DecodingKey::from_ed_der(&raw)
         });
 
