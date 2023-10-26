@@ -1,3 +1,4 @@
+mod cookies;
 mod models;
 
 mod uses {
@@ -51,6 +52,8 @@ mod uses {
         }
     }
 
+    // internal: handle cookie
+    pub use super::cookies::{Apply as _, Cookies};
     // internal: models
     pub use super::models::{DateTime, Post, PostContent};
 }
