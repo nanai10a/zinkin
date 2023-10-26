@@ -2,16 +2,10 @@ mod cookies;
 mod models;
 
 mod uses {
-    // actix-web: macros (http methods)
-    pub use actix_web::{delete, get, patch, post, put};
     // actix-web: frequently used things
     pub use actix_web::{web, HttpResponse, Responder};
     // serde: serialization / deserialization
-    pub use serde::{Deserialize, Serialize};
-    // sqlx: database
-    pub use sqlx::{Executor, FromRow, Row};
-    // webauthn-rs: authentication
-    pub use webauthn_rs::prelude as wan;
+    pub use serde::Deserialize;
 
     // crate: models
     pub use crate::models::{self, FromModel as _};
@@ -19,8 +13,6 @@ mod uses {
     pub use crate::repos::{KeyRepository, PostRepository};
     // crate: stores
     pub use crate::stores::{Entry, Store};
-    // crate: utilities
-    pub use crate::utils::*;
 
     pub macro try_into_responder($block:block) {{
         use std::error::Error;
@@ -45,7 +37,7 @@ mod uses {
     // internal: handle cookie
     pub use super::cookies::{Apply as _, Cookies};
     // internal: models
-    pub use super::models::{DateTime, Post, PostContent};
+    pub use super::models::Post;
 }
 
 #[allow(clippy::wildcard_imports)]
@@ -54,11 +46,13 @@ mod posts;
 #[allow(clippy::wildcard_imports)]
 mod auth;
 
+use webauthn_rs::prelude as wan;
+
 pub fn services<
     PR: 'static + crate::repos::PostRepository,
     KR: 'static + crate::repos::KeyRepository,
-    RS: 'static + crate::stores::Store<uses::wan::PasskeyRegistration, Key = SessionId>,
-    AS: 'static + crate::stores::Store<uses::wan::PasskeyAuthentication, Key = SessionId>,
+    RS: 'static + crate::stores::Store<wan::PasskeyRegistration, Key = SessionId>,
+    AS: 'static + crate::stores::Store<wan::PasskeyAuthentication, Key = SessionId>,
 >() -> impl actix_web::dev::HttpServiceFactory {
     use actix_web::{services, web};
 

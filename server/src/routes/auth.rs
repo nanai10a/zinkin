@@ -1,3 +1,5 @@
+use webauthn_rs::prelude as wan;
+
 use crate::auth::Token;
 use crate::routes::uses::*;
 
