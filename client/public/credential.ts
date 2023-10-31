@@ -123,22 +123,17 @@ export const CreateOptions = z.object({
         alg: z.number(),
         type: z.literal("public-key"),
       })
-      .array()
-      .optional(),
-    rp: z
-      .object({
-        id: z.string().optional(),
-        name: z.string(),
-      })
-      .optional(),
+      .array(),
+    rp: z.object({
+      id: z.string().optional(),
+      name: z.string(),
+    }),
     timeout: z.number().optional(),
-    user: z
-      .object({
-        displayName: z.string(),
-        id: z.string().transform(base64url.decodeBin),
-        name: z.string(),
-      })
-      .optional(),
+    user: z.object({
+      displayName: z.string(),
+      id: z.string().transform(base64url.decodeBin),
+      name: z.string(),
+    }),
   }),
 });
 
