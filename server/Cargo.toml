@@ -19,6 +19,6 @@ sqlx = { version = "0.7.2", features = ["sqlite", "runtime-tokio", "chrono"] }
 tokio = { version = "1.33.0", features = ["full"] }
 tracing = "0.1.40"
 tracing-actix-web = "0.7.8"
-tracing-subscriber = "0.3.17"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
 url = "2.4.1"
 webauthn-rs = "0.4.8"
