@@ -1,4 +1,5 @@
 import { z } from "zod";
+import * as auth from "./auth";
 
 export interface Post extends z.TypeOf<typeof Post> {}
 export const Post = z.object({
@@ -91,7 +92,7 @@ namespace vld {
   > = Schema[P][M] extends { res: infer R } ? R : never;
 }
 
-const BASE_URL = "http://localhost:9090";
+const BASE_URL = "https://zk.n7i.dev/-api";
 
 export const fetchAPI = async <
   U extends string & keyof Schema,
@@ -101,6 +102,8 @@ export const fetchAPI = async <
   method: M,
   obj: vld.req<U, M>,
 ): Promise<vld.res<U, M>> => {
+  await auth.refresh();
+
   const vld = getValidator(url, method);
 
   const json = JSON.stringify(vld.req.parse(obj));
@@ -108,7 +111,18 @@ export const fetchAPI = async <
 
   const headers = { "Content-Type": "application/json" };
 
-  return fetch(new URL(url, BASE_URL), { body, headers, method })
-    .then((res) => res.json())
-    .then((obj) => vld.res.parse(obj));
+  const res = await fetch(BASE_URL + url, { body, headers, method });
+  switch (res.status) {
+    case 200:
+      return vld.res.parse(await res.json());
+
+    case 400:
+      throw new Error(await res.text());
+
+    case 401:
+      throw new Error("unauthorized");
+
+    default:
+      throw new Error("unknown status");
+  }
 };

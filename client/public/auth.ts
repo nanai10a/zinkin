@@ -1,10 +1,10 @@
 import { z } from "zod";
 import * as c from "./credential";
 
-const BASE_URL = "https://zk.n7i.dev/-api/";
+const BASE_URL = "https://zk.n7i.dev/-api";
 
 export const register = async () => {
-  const url = new URL("auth/register", BASE_URL);
+  const url = BASE_URL + "/auth/register";
   const method = "POST";
   const headers = { "content-type": "application/json" };
 
@@ -45,7 +45,7 @@ export const register = async () => {
 };
 
 export const claim = async () => {
-  const url = new URL("auth/claim", BASE_URL);
+  const url = BASE_URL + "/auth/claim";
   const method = "POST";
   const headers = { "content-type": "application/json" };
 
@@ -91,7 +91,7 @@ export const claim = async () => {
 };
 
 export const refresh = async () => {
-  const url = new URL("auth/refresh", BASE_URL);
+  const url = BASE_URL + "/auth/refresh";
   const method = "GET";
 
   const res = await fetch(url, { method });
