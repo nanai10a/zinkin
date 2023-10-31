@@ -141,3 +141,20 @@ pub async fn refresh(mut ck: Cookies) -> impl Responder {
         }
     })
 }
+
+#[derive(Serialize)]
+struct Checked {
+    refresh: bool,
+    session: bool,
+    status: bool,
+}
+
+pub async fn check(ck: Cookies) -> impl Responder {
+    let result = Checked {
+        refresh: ck.refresh.is_some(),
+        session: ck.session.is_some(),
+        status: ck.status.is_some(),
+    };
+
+    HttpResponse::Ok().json(result)
+}

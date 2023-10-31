@@ -5,7 +5,7 @@ mod uses {
     // actix-web: frequently used things
     pub use actix_web::{web, HttpResponse, Responder};
     // serde: serialization / deserialization
-    pub use serde::Deserialize;
+    pub use serde::{Deserialize, Serialize};
 
     // crate: models
     pub use crate::models::{self, FromModel as _};
@@ -68,7 +68,8 @@ pub fn services<
     let auth = services![
         web::resource("/auth/register").route(web::post().to(auth::register::<KR, RS>)),
         web::resource("/auth/claim").route(web::post().to(auth::claim::<KR, AS>)),
-        web::resource("/auth/refresh").route(web::post().to(auth::refresh)),
+        web::resource("/auth/refresh").route(web::get().to(auth::refresh)),
+        web::resource("/auth/check").route(web::get().to(auth::check)),
     ];
 
     services![posts, auth]
