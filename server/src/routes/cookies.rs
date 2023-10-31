@@ -53,8 +53,9 @@ impl Cookies {
         let refresh = if let Some(ref token) = self.refresh {
             Cookie::build("refresh", token.encode()?)
                 .domain(*crate::vars::SERVE_HOST)
-                .http_only(true)
                 .same_site(SameSite::Strict)
+                .http_only(true)
+                .path("/-api/")
                 .secure(true)
                 .finish()
         } else {
@@ -67,8 +68,9 @@ impl Cookies {
         let session = if let Some(ref token) = self.session {
             Cookie::build("session", token.encode()?)
                 .domain(*crate::vars::SERVE_HOST)
-                .http_only(true)
                 .same_site(SameSite::Strict)
+                .http_only(true)
+                .path("/-api/")
                 .secure(true)
                 .finish()
         } else {
@@ -81,8 +83,9 @@ impl Cookies {
         let status = if let Some(ref status) = self.status {
             Cookie::build("status", status.to_string())
                 .domain(*crate::vars::SERVE_HOST)
-                .http_only(true)
                 .same_site(SameSite::Strict)
+                .http_only(true)
+                .path("/-api/")
                 .secure(true)
                 .finish()
         } else {
