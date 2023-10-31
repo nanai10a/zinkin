@@ -111,14 +111,17 @@ pub async fn claim<KR: KeyRepository, AS: Store<wan::PasskeyAuthentication, Key 
 
                 let result = site.finish_passkey_authentication(data, &pa);
 
-                if let Ok(_) = result {
-                    let token = Token::issue_refresh();
-                    ck.refresh.replace(token);
-                }
-
                 ck.status.take();
 
-                HttpResponse::Ok().apply_cookies(ck)?.finish()
+                match result {
+                    Ok(_) => {
+                        let token = Token::issue_refresh();
+                        ck.refresh.replace(token);
+
+                        HttpResponse::Ok().apply_cookies(ck)?.finish()
+                    },
+                    Err(_) => HttpResponse::Unauthorized().finish(),
+                }
             },
 
             (None, Some(_)) => HttpResponse::BadRequest().finish(),
