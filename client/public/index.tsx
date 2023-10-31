@@ -5,6 +5,7 @@ import { useEffect } from "preact/hooks";
 import { fetchAPI } from "./api";
 import { posts } from "./posts";
 
+import { AuthGuard } from "./AuthGuard";
 import { ShowPost } from "./ShowPost";
 import { Submit } from "./Submit";
 
@@ -29,8 +30,9 @@ export default function Home() {
           ))}
         </ul>
 
-        <div class="p-4">
+        <div class="relative p-4">
           <Submit />
+          <AuthGuard />
         </div>
       </div>
     </main>
