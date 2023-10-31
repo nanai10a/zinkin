@@ -1,6 +1,6 @@
 use crate::routes::uses::*;
 
-pub async fn get<PR: PostRepository>(repo: web::Data<PR>) -> impl Responder {
+pub async fn get<PR: PostRepository>(repo: web::Data<PR>, _: Cookies) -> impl Responder {
     try_into_responder!({
         let models = repo.all().await?;
         let jsons = models
@@ -21,8 +21,13 @@ pub struct Create {
 pub async fn create<PR: PostRepository>(
     repo: web::Data<PR>,
     data: web::Json<Create>,
+    ck: Cookies,
 ) -> impl Responder {
     try_into_responder!({
+        if ck.session.is_none() {
+            return HttpResponse::Unauthorized().finish();
+        }
+
         let Create { content } = data.into_inner();
 
         let id = rand::random();
@@ -44,6 +49,7 @@ pub mod _id_ {
     pub async fn get<PR: PostRepository>(
         repo: web::Data<PR>,
         id: web::Path<u32>,
+        _: Cookies,
     ) -> impl Responder {
         try_into_responder!({
             let model = repo
@@ -70,8 +76,13 @@ pub mod _id_ {
         repo: web::Data<PR>,
         id: web::Path<u32>,
         data: web::Json<Update>,
+        ck: Cookies,
     ) -> impl Responder {
         try_into_responder!({
+            if ck.session.is_none() {
+                return HttpResponse::Unauthorized().finish();
+            }
+
             match data.into_inner() {
                 Update::Modify { content } => {
                     let now = chrono::Local::now().fixed_offset();
