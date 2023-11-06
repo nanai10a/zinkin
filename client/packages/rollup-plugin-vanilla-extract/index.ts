@@ -43,10 +43,13 @@ const VanillaExtractPlugin = (opts: Options): Plugin => {
       });
 
       // parse js, into ast
-      const { body } = await swc.parse(code, {
+      const { body, span: root } = await swc.parse(code, {
         syntax: "ecmascript",
         comments: false,
       });
+
+      // console.log("```root(range):\n", root, "\n```");
+      // console.log("```body:\n", body, "\n```");
 
       // only interest to import-statement
       const isImport = (item: swc.ModuleItem): item is swc.ImportDeclaration =>
@@ -62,6 +65,8 @@ const VanillaExtractPlugin = (opts: Options): Plugin => {
         const { fileName, source } = await ve.getSourceFromVirtualCssFile(
           stmt.source.value,
         );
+
+        // console.log("```import:\n", stmt.source.value, "\n```");
 
         // omit basedir
         const filePath = path.relative(
@@ -82,14 +87,26 @@ const VanillaExtractPlugin = (opts: Options): Plugin => {
 
       // for remove css imports; browser won't allow them
       const replaceToVoid = (code: string, span: swc.Span) => {
-        const raw = code.slice(span.start - 1, span.end);
+        const raw = code.slice(span.start - root.start, span.end - root.start);
         const voidy = raw.replace(/./g, " ");
+
+        // console.log("```replace(range):\n", span, "\n```");
+        // console.log("```replace(range:fixed):\n", { start: span.start-root.start,end:span.end-root.start }, "\n```");
+        // console.log("```replace(from):\n", raw, "\n```");
+        // console.log("```replace(to):\n", voidy, "\n```");
 
         return code.replace(raw, voidy);
       };
 
+      const inspect = <T>(val: T): T => {
+        // console.log("```inspect:", id, "\n", val, "\n```\n");
+        return val;
+      };
+
       // finally, outs js that been removed css imports
-      return cssImports.map(({ span }) => span).reduce(replaceToVoid, code);
+      return inspect(
+        cssImports.map(({ span }) => span).reduce(replaceToVoid, code),
+      );
     },
 
     async generateBundle(_opts, bundle, _isWrite) {
