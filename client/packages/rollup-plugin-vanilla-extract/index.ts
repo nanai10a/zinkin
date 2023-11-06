@@ -74,15 +74,18 @@ const VanillaExtractPlugin = (opts: Options): Plugin => {
           fileName.replace(".css.ts", ""),
         );
 
-        // emit css as asset
-        this.emitFile({
-          type: "asset",
-          fileName: filePath,
-          source,
-        });
+        // if not yet, emit css as asset
+        if (!csses.has(filePath)) {
+          // emit css as asset
+          this.emitFile({
+            type: "asset",
+            fileName: filePath,
+            source,
+          });
 
-        // ...and use later, to inject into html
-        csses.add(filePath);
+          // ...and use later, to inject into html
+          csses.add(filePath);
+        }
       }
 
       // for remove css imports; browser won't allow them
