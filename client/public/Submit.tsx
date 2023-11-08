@@ -3,6 +3,8 @@ import { useCallback, useState } from "preact/hooks";
 import { fetchAPI, Post } from "./api";
 import { posts } from "./posts";
 
+import { root } from "./Submit.css.ts";
+
 const unshiftPosts = (...val: Post[]) => {
   posts.value = [...val, ...posts.value];
 };
@@ -29,7 +31,7 @@ export const Submit = () => {
 
   return (
     <textarea
-      class="p-2 w-full bg-slate-100 rounded-xl border-(2 slate-300) resize-none"
+      class={root}
       rows={3}
       value={text}
       onInput={update}

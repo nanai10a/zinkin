@@ -1,5 +1,7 @@
 import { useMemo } from "preact/hooks";
 
+import { root } from "./FormatDate.css.ts";
+
 const opts = {
   dateStyle: "medium",
   timeStyle: "medium",
@@ -10,7 +12,7 @@ export const FormatDate = ({ date }: { date: Date }) => {
   const content = useMemo(() => date.toLocaleString("ja-JP", opts), [date]);
 
   return (
-    <time class="block mt-4 opacity-50 text-right" dateTime={dateTime}>
+    <time class={root} dateTime={dateTime}>
       {content}
     </time>
   );

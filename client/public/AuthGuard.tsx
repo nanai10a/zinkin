@@ -1,10 +1,8 @@
 import { useCallback, useState, useEffect } from "preact/hooks";
 
 import * as auth from "./auth";
-import { tw } from "./twind";
 
-// rome-ignore format:
-const slashed = `bg-[repeating-linear-gradient(-45deg, ${tw.theme("colors.slate.300")} 0px 4px, transparent 4px 12px)]`.replaceAll(" ", "_");
+import { cont, butt } from "./AuthGuard.css.ts";
 
 const authw = {
   status: async () => (await auth.check()).refresh,
@@ -55,20 +53,16 @@ export const AuthGuard = () => {
     setPassed(await authw.status());
   }, [setPassed]);
 
+  if (passed) {
+    return <></>;
+  }
+
   return (
-    <div
-      class={`absolute p-2 mx-auto w-full h-full top-0 left-0 ${slashed} flex place-content-center gap-8 ${passed ? "hidden" : ""}`}
-    >
-      <button
-        class="px-4 py-2 my-auto h-fit bg-(slate-300 hover:slate-400) rounded-full border-(2 slate-400 hover:slate-500) transition"
-        onClick={signup}
-      >
+    <div class={cont} {...(passed ? { hidden: true } : {})}>
+      <button class={butt} onClick={signup}>
         Sign up
       </button>
-      <button
-        class="px-4 py-2 my-auto h-fit bg-(slate-300 hover:slate-400) rounded-full border-(2 slate-400 hover:slate-500) transition"
-        onClick={login}
-      >
+      <button class={butt} onClick={login}>
         Login
       </button>
     </div>

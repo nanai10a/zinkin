@@ -9,6 +9,9 @@ import { AuthGuard } from "./AuthGuard";
 import { ShowPost } from "./ShowPost";
 import { Submit } from "./Submit";
 
+import { main, cont, list, elem, space, f__k } from "./index.css.ts";
+import { apply } from "./styles.css.ts";
+
 export default function Home() {
   useEffect(() => {
     fetchAPI("/posts", "GET", null).then((res) => {
@@ -17,20 +20,20 @@ export default function Home() {
   }, []);
 
   return (
-    <main class="absolute inset-0 w-full h-[100svh]">
-      <div class="mx-auto min-w-0 max-w-2xl min-h-0 h-full flex flex-col">
-        <ul class="grow w-full flex-(& col-reverse) overflow-y-auto">
+    <main class={`${main} ${apply}`}>
+      <div class={cont}>
+        <ul class={list}>
           {posts.value.map((post) => (
             <>
-              <li class="px-2 py-4">
+              <li class={elem}>
                 <ShowPost {...post} />
               </li>
-              <hr class="h-0.5 bg-slate-300 last:hidden" />
+              <hr class={space} />
             </>
           ))}
         </ul>
 
-        <div class="relative p-4">
+        <div class={f__k}>
           <Submit />
           <AuthGuard />
         </div>

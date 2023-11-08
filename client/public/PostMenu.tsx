@@ -3,6 +3,8 @@ import { fetchAPI, Post } from "./api";
 import { Icon } from "./Icon";
 import { posts } from "./posts";
 
+import { cont, butt } from "./PostMenu.css.ts";
+
 const updatePost = (idx: number, val: Post) => {
   const a = posts.value;
   a[idx] = val;
@@ -18,18 +20,17 @@ const setIsDelete = async (id: number, isDeleted: boolean) => {
 
   updatePost(idx, await fetchAPI(`/posts/${id}`, "PATCH", { isDeleted }));
 };
-
 export const PostMenu = ({ id, isDeleted }: Pick<Post, "id" | "isDeleted">) => (
-  <div class="w-fit leading-none flex-(& row) gap-2">
+  <div class={cont}>
     <button
-      class="p-2 bg-(slate-200 hover:slate-300) rounded-lg transition"
+      class={butt}
       onClick={() => setIsDelete(id, true)}
       hidden={isDeleted}
     >
       <Icon icon="material-symbols:delete-outline-rounded" />
     </button>
     <button
-      class="p-2 bg-(slate-200 hover:slate-300) rounded-lg transition"
+      class={butt}
       onClick={() => setIsDelete(id, false)}
       hidden={!isDeleted}
     >
