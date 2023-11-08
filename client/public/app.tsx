@@ -1,9 +1,6 @@
-import { lazy, hydrate, prerender as ssr, ErrorBoundary } from "preact-iso";
+import { ErrorBoundary } from "preact-iso";
 
-import inline from "@twind/with-react/inline";
-import { tw } from "./twind";
-
-const Index = lazy(() => import("./index"));
+import Index from "./index";
 
 export const App = () => {
   return (
@@ -13,8 +10,20 @@ export const App = () => {
   );
 };
 
+// --- --- --- --- --- --- --- --- ---
+import { hydrate } from "preact-iso";
+
 hydrate(<App />);
 
-export const prerender = async (data: object) => {
-  return await ssr(<App {...data} />).then((r) => inline(r.html, tw));
+// --- --- --- --- --- --- --- --- ---
+import { prerender as withPreact } from "preact-iso";
+
+type Data = {
+  ssr: boolean;
+  url: string;
+  route: Record<string, string>;
+};
+
+export const prerender = (data: Data) => {
+  return withPreact(<App />);
 };
