@@ -8,6 +8,9 @@ export const main = style({
 
   width: "100%",
   height: "100svh", // `svh`, あんま体験良くないかも
+
+  fontSize: "1rem",
+  lineHeight: "1.5rem",
 });
 
 export const cont = style({
