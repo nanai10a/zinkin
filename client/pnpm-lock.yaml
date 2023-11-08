@@ -11,18 +11,6 @@ dependencies:
   '@preact/signals':
     specifier: ^1.2.1
     version: 1.2.1(preact@10.18.1)
-  '@twind/core':
-    specifier: ^1.1.3
-    version: 1.1.3(typescript@5.2.2)
-  '@twind/preset-autoprefix':
-    specifier: ^1.0.7
-    version: 1.0.7(@twind/core@1.1.3)(typescript@5.2.2)
-  '@twind/preset-tailwind':
-    specifier: ^1.1.4
-    version: 1.1.4(@twind/core@1.1.3)(typescript@5.2.2)
-  '@twind/with-react':
-    specifier: ^1.1.3
-    version: 1.1.3(@twind/core@1.1.3)(react@18.2.0)(typescript@5.2.2)
   '@vanilla-extract/css':
     specifier: ^1.13.0
     version: 1.13.0
@@ -150,70 +138,6 @@ packages:
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
     engines: {node: '>=10.13.0'}
     dev: true
-
-  /@twind/core@1.1.3(typescript@5.2.2):
-    resolution: {integrity: sha512-/B/aNFerMb2IeyjSJy3SJxqVxhrT77gBDknLMiZqXIRr4vNJqiuhx7KqUSRzDCwUmyGuogkamz+aOLzN6MeSLw==}
-    engines: {node: '>=14.15.0'}
-    peerDependencies:
-      typescript: ^4.8.4
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      csstype: 3.1.2
-      typescript: 5.2.2
-    dev: false
-
-  /@twind/preset-autoprefix@1.0.7(@twind/core@1.1.3)(typescript@5.2.2):
-    resolution: {integrity: sha512-3wmHO0pG/CVxYBNZUV0tWcL7CP0wD5KpyWAQE/KOalWmOVBj+nH6j3v6Y3I3pRuMFaG5DC78qbYbhA1O11uG3w==}
-    engines: {node: '>=14.15.0'}
-    peerDependencies:
-      '@twind/core': ^1.1.0
-      typescript: ^4.8.4
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@twind/core': 1.1.3(typescript@5.2.2)
-      style-vendorizer: 2.2.3
-      typescript: 5.2.2
-    dev: false
-
-  /@twind/preset-tailwind@1.1.4(@twind/core@1.1.3)(typescript@5.2.2):
-    resolution: {integrity: sha512-zv85wrP/DW4AxgWrLfH7kyGn/KJF3K04FMLVl2AjoxZGYdCaoZDkL8ma3hzaKQ+WGgBFRubuB/Ku2Rtv/wjzVw==}
-    engines: {node: '>=14.15.0'}
-    peerDependencies:
-      '@twind/core': ^1.1.0
-      typescript: ^4.8.4
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-    dependencies:
-      '@twind/core': 1.1.3(typescript@5.2.2)
-      typescript: 5.2.2
-    dev: false
-
-  /@twind/with-react@1.1.3(@twind/core@1.1.3)(react@18.2.0)(typescript@5.2.2):
-    resolution: {integrity: sha512-xWQ+BC7P8gECjIFamJ0UGGmcWaUKxcmH6HcnPIANO+NDJIoTFbkjHu/jxlBtADX706nYRYeuOXBDzDd0mSdJvg==}
-    engines: {node: '>=14.15.0'}
-    peerDependencies:
-      '@twind/core': ^1.1.0
-      react: ^16.6.0 || 17.x || 18.x
-      react-dom: ^16.6.0 || 17.x || 18.x
-      typescript: ^4.8.4
-    peerDependenciesMeta:
-      react:
-        optional: true
-      react-dom:
-        optional: true
-      typescript:
-        optional: true
-    dependencies:
-      '@twind/core': 1.1.3(typescript@5.2.2)
-      fast-diff: 1.3.0
-      react: 18.2.0
-      typescript: 5.2.2
-    dev: false
 
   /@types/prop-types@15.7.9:
     resolution: {integrity: sha512-n1yyPsugYNSmHgxDFjicaI2+gCNjsBck8UX9kuofAKlc0h1bL+20oSF72KeNaW2DUlesbEVCFgyV2dPGTiY42g==}
@@ -481,10 +405,6 @@ packages:
   /eventemitter3@4.0.7:
     resolution: {integrity: sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==}
     dev: true
-
-  /fast-diff@1.3.0:
-    resolution: {integrity: sha512-VxPP4NqbUjj6MaAOafWeUn2cXWLcCtljklUtZf0Ind4XQ+QPtmA0b18zZy0jIQx+ExRVCR/ZQpBmik5lXshNsw==}
-    dev: false
 
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -1147,10 +1067,6 @@ packages:
     resolution: {integrity: sha512-IezA2qp+vcdlhJaVm5SOdPPTUu0FCEqfNSli2vRuSIBbu5Nq5UvygTk/VzeCqfLz2Atj3dVII5QBKGZRZ0edzw==}
     dev: true
 
-  /style-vendorizer@2.2.3:
-    resolution: {integrity: sha512-/VDRsWvQAgspVy9eATN3z6itKTuyg+jW1q6UoTCQCFRqPDw8bi3E1hXIKnGw5LvXS2AQPuJ7Af4auTLYeBOLEg==}
-    dev: false
-
   /stylehacks@5.1.1(postcss@8.4.31):
     resolution: {integrity: sha512-sBpcd5Hx7G6seo7b1LkpttvTz7ikD0LlH5RmdcBNb6fFR0Fl7LQwHDFr300q4cwUqi+IYrFGmsIHieMBfnN/Bw==}
     engines: {node: ^10 || ^12 || >=14.0}
@@ -1191,6 +1107,7 @@ packages:
     resolution: {integrity: sha512-mI4WrpHsbCIcwT9cF4FZvr80QUeKvsUsUvKDoR+X/7XHQH98xYD8YHZg7ANtz2GtZt/CBq2QJ0thkGJMHfqc1w==}
     engines: {node: '>=14.17'}
     hasBin: true
+    dev: true
 
   /update-browserslist-db@1.0.13(browserslist@4.22.1):
     resolution: {integrity: sha512-xebP81SNcPuNpPP3uzeW1NYXxI3rxyJzF3pD6sH4jE7o/IX+WtSpwnVU+qIsDPyk0d3hmFQ7mjqc6AtV604hbg==}
