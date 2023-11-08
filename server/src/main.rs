@@ -76,7 +76,10 @@ pub mod vars {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt().pretty().init();
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::TRACE)
+        .pretty()
+        .init();
 
     let repo = actix_web::web::Data::new(repos::SqliteRepository::new(*vars::DB_URL).await?);
     let store = actix_web::web::Data::new(stores::InMemoryStore::<routes::SessionId>::new());
