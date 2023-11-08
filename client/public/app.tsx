@@ -1,5 +1,7 @@
 import { ErrorBoundary } from "preact-iso";
 
+import "./app.css.ts";
+
 import Index from "./index";
 
 export const App = () => {
