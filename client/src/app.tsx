@@ -1,5 +1,3 @@
-import "preact/debug";
-
 import { useEffect } from "preact/hooks";
 
 import { fetchAPI } from "./api";
