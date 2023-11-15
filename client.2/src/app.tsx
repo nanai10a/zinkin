@@ -1,33 +1,43 @@
-import { useState } from 'preact/hooks'
-import preactLogo from './assets/preact.svg'
-import viteLogo from '/vite.svg'
-import './app.css'
+import "preact/debug";
 
-export function App() {
-  const [count, setCount] = useState(0)
+import { useEffect } from "preact/hooks";
+
+import { fetchAPI } from "./api";
+import { posts } from "./posts";
+
+import { AuthGuard } from "./AuthGuard";
+import { ShowPost } from "./ShowPost";
+import { Submit } from "./Submit";
+
+import { root, cont, list, elem, space, f__k } from "./app.css.ts";
+import { apply } from "./styles.css.ts";
+
+export default function () {
+  useEffect(() => {
+    fetchAPI("/posts", "GET", null).then((res) => {
+      posts.value = res;
+    });
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} class="logo" alt="Vite logo" />
-        </a>
-        <a href="https://preactjs.com" target="_blank">
-          <img src={preactLogo} class="logo preact" alt="Preact logo" />
-        </a>
+    <div class={`${root} ${apply}`}>
+      <div class={cont}>
+        <ul class={list}>
+          {posts.value.map((post) => (
+            <>
+              <li class={elem}>
+                <ShowPost {...post} />
+              </li>
+              <hr class={space} />
+            </>
+          ))}
+        </ul>
+
+        <div class={f__k}>
+          <Submit />
+          <AuthGuard />
+        </div>
       </div>
-      <h1>Vite + Preact</h1>
-      <div class="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/app.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p class="read-the-docs">
-        Click on the Vite and Preact logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }

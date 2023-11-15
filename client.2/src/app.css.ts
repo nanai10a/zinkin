@@ -2,7 +2,7 @@ import { style } from "@vanilla-extract/css";
 
 import { colors } from "./styles.css.ts";
 
-export const main = style({
+export const root = style({
   position: "absolute",
   inset: "0",
 

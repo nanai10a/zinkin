@@ -1,5 +1,8 @@
-import { render } from 'preact'
-import { App } from './app.tsx'
-import './index.css'
+import { render } from "preact";
 
-render(<App />, document.getElementById('app')!)
+import App from "./app.tsx";
+
+import "reset-css/reset.css";
+import "./main.css.ts";
+
+render(<App />, document.getElementsByTagName("main").item(0)!);
