@@ -9,6 +9,7 @@ import { colors, c } from "./styles.css.ts";
 //   --property: top right bottom left;
 
 export const cont = style({
+  boxSizing: "border-box",
   display: "flex",
   position: "absolute",
 
