@@ -46,7 +46,7 @@ export const space = style({
   background: colors.slate[300],
 
   ":last-child": {
-    display: "hidden",
+    display: "none",
   },
 });
 
