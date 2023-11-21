@@ -3,6 +3,8 @@ import { style } from "@vanilla-extract/css";
 import { colors } from "./styles.css.ts";
 
 export const root = style({
+  boxSizing: "border-box",
+
   width: "100%",
 
   background: colors.slate[100],

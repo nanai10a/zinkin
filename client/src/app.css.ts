@@ -53,5 +53,5 @@ export const space = style({
 export const f__k = style({
   position: "relative",
 
-  padding: "1rem",
+  margin: "1rem",
 });
