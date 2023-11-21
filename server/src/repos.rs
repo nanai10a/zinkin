@@ -23,30 +23,24 @@ pub trait PostRepository {
     async fn restore(&self, id: u32) -> anyhow::Result<()>;
 }
 
-pub struct SqliteRepository(sqlx::SqlitePool);
+pub struct PgRepository(sqlx::PgPool);
 
-impl SqliteRepository {
-    pub async fn new(p: impl AsRef<std::path::Path>) -> anyhow::Result<Self> {
-        if !std::fs::try_exists(p.as_ref())? {
-            std::fs::write(&p, [])?;
-        }
-
-        let url = "sqlite://".to_string() + &p.as_ref().to_string_lossy();
-
-        let db = sqlx::SqlitePool::connect(&url).await?;
+impl PgRepository {
+    pub async fn new(p: impl AsRef<str>) -> anyhow::Result<Self> {
+        let db = sqlx::PgPool::connect(p.as_ref()).await?;
         sqlx::migrate!().run(&db).await?;
 
         Ok(Self(db))
     }
 }
 
-impl core::ops::Deref for SqliteRepository {
-    type Target = sqlx::SqlitePool;
+impl core::ops::Deref for PgRepository {
+    type Target = sqlx::PgPool;
 
     fn deref(&self) -> &Self::Target { &self.0 }
 }
 
-impl PostRepository for SqliteRepository {
+impl PostRepository for PgRepository {
     async fn all(&self) -> anyhow::Result<Vec<models::Post>> {
         #[rustfmt::skip]
         const QUERY: &str = "SELECT p.*, pf.flags FROM posts AS p \
@@ -211,7 +205,7 @@ pub trait KeyRepository {
     async fn remove(&self, id: u32) -> anyhow::Result<()>;
 }
 
-impl KeyRepository for SqliteRepository {
+impl KeyRepository for PgRepository {
     async fn all(&self) -> anyhow::Result<Vec<ext::Passkey>> {
         #[rustfmt::skip]
         const QUERY: &str = "SELECT content FROM keys";

@@ -81,7 +81,7 @@ async fn main() -> anyhow::Result<()> {
         .pretty()
         .init();
 
-    let repo = actix_web::web::Data::new(repos::SqliteRepository::new(*vars::DB_URL).await?);
+    let repo = actix_web::web::Data::new(repos::PgRepository::new(*vars::DB_URL).await?);
     let store = actix_web::web::Data::new(stores::InMemoryStore::<routes::SessionId>::new());
 
     let site = actix_web::web::Data::new({
@@ -109,8 +109,8 @@ async fn main() -> anyhow::Result<()> {
             .wrap(cors)
             .wrap(actix_web::middleware::NormalizePath::trim())
             .service(routes::services::<
-                repos::SqliteRepository,
-                repos::SqliteRepository,
+                repos::PgRepository,
+                repos::PgRepository,
                 stores::InMemoryStore<_>,
                 stores::InMemoryStore<_>,
             >())
