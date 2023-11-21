@@ -5,6 +5,8 @@ import { colors } from "./styles.css.ts";
 export const root = style({
   boxSizing: "border-box",
 
+  padding: ".5rem",
+
   width: "100%",
 
   background: colors.slate[100],
