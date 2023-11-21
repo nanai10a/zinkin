@@ -26,6 +26,8 @@ export const cont = style({
   height: "100%",
 
   background: `repeating-linear-gradient(-45deg, ${colors.slate["300"]} 0px 4px, transparent 4px 12px)`,
+
+  borderRadius: ".75rem",
 });
 
 export const butt = style({
