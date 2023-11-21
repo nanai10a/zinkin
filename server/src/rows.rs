@@ -2,11 +2,11 @@ type DateTime = chrono::NaiveDateTime;
 
 #[derive(sqlx::FromRow)]
 pub struct Post {
-    pub id: u32,
+    pub id: i64,
     pub content: String,
     pub posted_at: DateTime,
     pub created_at: DateTime,
-    pub flags: u32,
+    pub is_deleted: bool,
 }
 
 impl crate::models::IntoModel for Post {
@@ -18,10 +18,10 @@ impl crate::models::IntoModel for Post {
             content,
             posted_at,
             created_at,
-            flags,
+            is_deleted,
         } = self;
 
-        let is_deleted = flags & 0b0001 != 0;
+        let id = id as u32;
 
         Ok(Self::Model {
             id,
@@ -47,16 +47,14 @@ impl crate::models::FromModel for Post {
             is_deleted,
         } = model;
 
-        let mut flags = 0;
-
-        flags |= u32::from(is_deleted) << 0;
+        let id = id as i64;
 
         Ok(Self {
             id,
             content,
             posted_at,
             created_at,
-            flags,
+            is_deleted,
         })
     }
 }

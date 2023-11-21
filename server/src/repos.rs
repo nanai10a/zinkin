@@ -43,13 +43,13 @@ impl core::ops::Deref for PgRepository {
 impl PostRepository for PgRepository {
     async fn all(&self) -> anyhow::Result<Vec<models::Post>> {
         #[rustfmt::skip]
-        const QUERY: &str = "SELECT p.*, pf.flags FROM posts AS p \
+        const QUERY: &str = "SELECT p.*, pf.is_deleted FROM posts AS p \
                              JOIN post_flags AS pf ON p.id = pf.id \
-                             WHERE DATETIME(p.created_at) = ( \
-                                 SELECT MAX(DATETIME(created_at)) FROM posts \
+                             WHERE p.created_at = ( \
+                                 SELECT MAX(created_at) FROM posts \
                                  WHERE id = p.id \
-                             ) AND (pf.flags & 0x01) = 0 \
-                             ORDER BY DATETIME(created_at) DESC, p.id DESC";
+                             ) AND pf.is_deleted = FALSE \
+                             ORDER BY created_at DESC, p.id DESC";
 
         let models = sqlx::query(QUERY)
             .fetch_all(&**self)
@@ -65,13 +65,13 @@ impl PostRepository for PgRepository {
 
     async fn find_one(&self, id: u32) -> anyhow::Result<Option<models::Post>> {
         #[rustfmt::skip]
-        const QUERY: &str = "SELECT p.*, pf.flags FROM posts AS p \
+        const QUERY: &str = "SELECT p.*, pf.is_deleted FROM posts AS p \
                              JOIN post_flags AS pf ON p.id = pf.id \
-                             WHERE p.id = ? \
-                             ORDER BY DATETIME(p.created_at) DESC \
+                             WHERE p.id = $1 \
+                             ORDER BY p.created_at DESC \
                              LIMIT 1";
 
-        let model = match sqlx::query(QUERY).bind(id).fetch_one(&**self).await {
+        let model = match sqlx::query(QUERY).bind(id as i64).fetch_one(&**self).await {
             Ok(ref row) => rows::Post::from_row(row)?.into_model()?,
             Err(sqlx::Error::RowNotFound) => return Ok(None),
             Err(err) => anyhow::bail!(err),
@@ -82,13 +82,13 @@ impl PostRepository for PgRepository {
 
     async fn find_all(&self, id: u32) -> anyhow::Result<Vec<models::Post>> {
         #[rustfmt::skip]
-        const QUERY: &str = "SELECT p.*, pf.flags FROM posts AS p \
+        const QUERY: &str = "SELECT p.*, pf.is_deleted FROM posts AS p \
                              JOIN post_flags AS pf ON p.id = pf.id \
-                             WHERE p.id = ? \
-                             ORDER BY DATETIME(p.created_at) DESC";
+                             WHERE p.id = $1 \
+                             ORDER BY p.created_at DESC";
 
         let models = sqlx::query(QUERY)
-            .bind(id)
+            .bind(id as i64)
             .fetch_all(&**self)
             .await?
             .iter()
@@ -103,18 +103,18 @@ impl PostRepository for PgRepository {
     async fn create(&self, model: models::Post) -> anyhow::Result<()> {
         #[rustfmt::skip]
         const QUERY_0: &str = "INSERT INTO posts (id, content, posted_at, created_at) \
-                               VALUES (?, ?, ?, ?)";
+                               VALUES ($1, $2, $3, $4)";
 
         #[rustfmt::skip]
-        const QUERY_1: &str = "INSERT INTO post_flags (id, flags) \
-                               VALUES (?, ?)";
+        const QUERY_1: &str = "INSERT INTO post_flags (id, is_deleted) \
+                               VALUES ($1, $2)";
 
         let rows::Post {
             id,
             content,
             posted_at,
             created_at,
-            flags,
+            is_deleted,
         } = rows::Post::from_model(model)?;
 
         let result = sqlx::query(QUERY_0)
@@ -131,7 +131,7 @@ impl PostRepository for PgRepository {
 
         let result = sqlx::query(QUERY_1)
             .bind(id)
-            .bind(flags)
+            .bind(is_deleted)
             .execute(&**self)
             .await?;
 
@@ -150,13 +150,13 @@ impl PostRepository for PgRepository {
     ) -> anyhow::Result<()> {
         #[rustfmt::skip]
         const QUERY: &str = "INSERT INTO posts (id, content, posted_at, created_at) \
-                             SELECT id, ?, posted_at, ? FROM posts \
-                             WHERE id = ?";
+                             SELECT id, $1, posted_at, $2 FROM posts \
+                             WHERE id = $3";
 
         let result = sqlx::query(QUERY)
             .bind(content)
             .bind(created_at)
-            .bind(id)
+            .bind(id as i64)
             .execute(&**self)
             .await?;
 
@@ -170,10 +170,10 @@ impl PostRepository for PgRepository {
     async fn delete(&self, id: u32) -> anyhow::Result<()> {
         #[rustfmt::skip]
         const QUERY: &str = "UPDATE post_flags \
-                             SET flags = flags | 0x01 \
-                             WHERE id = ?";
+                             SET is_deleted = TRUE \
+                             WHERE id = $1";
 
-        let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;
+        let result = sqlx::query(QUERY).bind(id as i64).execute(&**self).await?;
 
         if result.rows_affected() != 1 {
             anyhow::bail!("failed to update post_flags");
@@ -185,10 +185,10 @@ impl PostRepository for PgRepository {
     async fn restore(&self, id: u32) -> anyhow::Result<()> {
         #[rustfmt::skip]
         const QUERY: &str = "UPDATE post_flags \
-                             SET flags = ~(~flags | 0x01) \
-                             WHERE id = ?";
+                             SET is_deleted = FALSE \
+                             WHERE id = $1";
 
-        let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;
+        let result = sqlx::query(QUERY).bind(id as i64).execute(&**self).await?;
 
         if result.rows_affected() != 1 {
             anyhow::bail!("failed to update post_flags");
@@ -224,9 +224,9 @@ impl KeyRepository for PgRepository {
 
     async fn get(&self, id: u32) -> anyhow::Result<Option<ext::Passkey>> {
         #[rustfmt::skip]
-        const QUERY: &str = "SELECT content FROM keys WHERE id = ?";
+        const QUERY: &str = "SELECT content FROM keys WHERE id = $1";
 
-        let model = match sqlx::query(QUERY).bind(id).fetch_one(&**self).await {
+        let model = match sqlx::query(QUERY).bind(id as i64).fetch_one(&**self).await {
             Ok(ref row) => rows::Key::from_row(row)?.into_model()?,
             Err(sqlx::Error::RowNotFound) => return Ok(None),
             Err(err) => anyhow::bail!(err),
@@ -238,12 +238,12 @@ impl KeyRepository for PgRepository {
     async fn push(&self, id: u32, model: ext::Passkey) -> anyhow::Result<()> {
         #[rustfmt::skip]
         const QUERY: &str = "INSERT INTO keys (id, content) \
-                             VALUES (?, ?)";
+                             VALUES ($1, $2)";
 
         let rows::Key { content } = rows::Key::from_model(model)?;
 
         let result = sqlx::query(QUERY)
-            .bind(id)
+            .bind(id as i64)
             .bind(content)
             .execute(&**self)
             .await?;
@@ -257,9 +257,9 @@ impl KeyRepository for PgRepository {
 
     async fn remove(&self, id: u32) -> anyhow::Result<()> {
         #[rustfmt::skip]
-        const QUERY: &str = "DELETE FROM keys WHERE id = ?";
+        const QUERY: &str = "DELETE FROM keys WHERE id = $1";
 
-        let result = sqlx::query(QUERY).bind(id).execute(&**self).await?;
+        let result = sqlx::query(QUERY).bind(id as i64).execute(&**self).await?;
 
         if result.rows_affected() != 1 {
             anyhow::bail!("failed to delete from keys");
