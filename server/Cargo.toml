@@ -15,7 +15,7 @@ pulldown-cmark = "0.9.3"
 rand = "0.8.5"
 rmp-serde = "1.1.2"
 serde = { version = "1.0.192", features = ["derive"] }
-sqlx = { version = "0.7.2", features = ["postgres", "runtime-tokio", "chrono"] }
+sqlx = { version = "0.7.2", features = ["postgres", "runtime-tokio", "tls-rustls", "chrono"] }
 tokio = { version = "1.34.0", features = ["full"] }
 tracing = "0.1.40"
 tracing-actix-web = "0.7.9"
