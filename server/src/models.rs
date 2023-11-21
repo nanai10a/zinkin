@@ -11,7 +11,7 @@ pub trait FromModel {
     where Self: Sized;
 }
 
-pub type DateTime = chrono::DateTime<chrono::FixedOffset>;
+pub type DateTime = chrono::NaiveDateTime;
 
 pub struct Post {
     pub id: u32,

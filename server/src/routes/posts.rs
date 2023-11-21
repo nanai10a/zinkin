@@ -31,7 +31,7 @@ pub async fn create<PR: PostRepository>(
         let Create { content } = data.into_inner();
 
         let id = rand::random();
-        let now = chrono::Local::now().fixed_offset();
+        let now = chrono::Local::now().naive_utc();
 
         let model = models::Post::new(id, content, now);
         let id = model.id;
@@ -85,7 +85,7 @@ pub mod _id_ {
 
             match data.into_inner() {
                 Update::Modify { content } => {
-                    let now = chrono::Local::now().fixed_offset();
+                    let now = chrono::Local::now().naive_utc();
                     repo.update(*id, content, now).await?;
                 },
                 Update::Deleting { is_deleted: true } => {

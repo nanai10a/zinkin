@@ -1,4 +1,4 @@
-pub type DateTime = chrono::DateTime<chrono::FixedOffset>;
+pub type DateTime = chrono::NaiveDateTime;
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]

@@ -1,4 +1,4 @@
-type DateTime = chrono::DateTime<chrono::FixedOffset>;
+type DateTime = chrono::NaiveDateTime;
 
 #[derive(sqlx::FromRow)]
 pub struct Post {
