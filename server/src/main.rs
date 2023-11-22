@@ -76,6 +76,8 @@ pub mod vars {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenvy::dotenv_override().ok().unwrap();
+
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::TRACE)
         .pretty()
