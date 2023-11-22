@@ -10,6 +10,7 @@ anyhow = "1.0.75"
 base64 = "0.21.5"
 chrono = { version = "0.4.31", features = ["serde"] }
 dashmap = "5.5.3"
+dotenvy = "0.15.7"
 jsonwebtoken = "9.1.0"
 pulldown-cmark = "0.9.3"
 rand = "0.8.5"
