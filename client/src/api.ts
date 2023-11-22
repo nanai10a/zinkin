@@ -92,7 +92,7 @@ namespace vld {
   > = Schema[P][M] extends { res: infer R } ? R : never;
 }
 
-const BASE_URL = "https://zk.n7i.dev/-api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const fetchAPI = async <
   U extends string & keyof Schema,
