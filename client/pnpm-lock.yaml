@@ -28,6 +28,9 @@ dependencies:
     version: 3.22.4
 
 devDependencies:
+  '@cloudflare/workers-types':
+    specifier: ^4.20231121.0
+    version: 4.20231121.0
   '@preact/preset-vite':
     specifier: ^2.5.0
     version: 2.6.0(@babel/core@7.23.3)(preact@10.19.2)(vite@4.5.0)
@@ -308,6 +311,10 @@ packages:
       '@babel/helper-string-parser': 7.22.5
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
+    dev: true
+
+  /@cloudflare/workers-types@4.20231121.0:
+    resolution: {integrity: sha512-+kWfpCkqiepwAKXyHoE0gnkPgkLhz0/9HOBIGhHRsUvUKvhUtm3mbqqoGRWgF1qcjzrDUBbrrOq4MYHfFtc2RA==}
     dev: true
 
   /@emotion/hash@0.9.1:

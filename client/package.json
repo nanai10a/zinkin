@@ -18,6 +18,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231121.0",
     "@preact/preset-vite": "^2.5.0",
     "@types/react": "^18.2.37",
     "@vanilla-extract/vite-plugin": "^3.9.0",
