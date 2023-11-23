@@ -6,7 +6,6 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::significant_drop_in_scrutinee)]
 #![allow(clippy::trivially_copy_pass_by_ref)]
-//
 // FIXME: currently ignored, but must think about there
 #![allow(async_fn_in_trait)]
 #![allow(clippy::future_not_send)]
