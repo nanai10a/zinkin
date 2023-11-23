@@ -56,17 +56,7 @@ pub mod vars {
     }
 
     load_env!(LISTEN_ADDR);
-
-    load_env!(SERVE_URL);
-    static_lazy!(SERVE_HOST, {
-        SERVE_URL
-            .parse::<url::Url>()
-            .unwrap()
-            .host_str()
-            .unwrap()
-            .to_owned()
-            .leak()
-    });
+    load_env!(SERVE_HOST);
 
     load_env!(DB_URL);
 
@@ -87,7 +77,7 @@ async fn main() -> anyhow::Result<()> {
     let store = actix_web::web::Data::new(stores::InMemoryStore::<routes::SessionId>::new());
 
     let site = actix_web::web::Data::new({
-        let url = webauthn_rs::prelude::Url::parse(*vars::SERVE_URL)?;
+        let url = webauthn_rs::prelude::Url::parse(&format!("https://{}", *vars::SERVE_HOST))?;
         let host = url
             .host_str()
             .ok_or_else(|| anyhow::anyhow!("hostname is none"))?;
