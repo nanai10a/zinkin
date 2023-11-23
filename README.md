@@ -27,7 +27,7 @@ first, use Cloudflare Pages. configure them:
 
 and, set environment values:
 
-- **CF_API_BASE_URL** \<to server-side deployment\>
+- **CF_API_BASE_URL** \<of server-side deployment\>
 - **VITE_API_BASE_URL** `/-api` (changeable)
 
 Cloudflare Pages will work as cdn of client and proxy to server-side. `functions/-api/[[catchall]].ts` works as proxy to point `CF_API_BASE_URL`. so if u want to change `VITE_API_BASE_URL`, select dividing client-side and server-side, or combining them (default).
