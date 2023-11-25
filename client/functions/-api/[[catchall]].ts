@@ -12,5 +12,6 @@ export const onRequest = async (ctx: EventContext<Env, string, {}>) => {
 
   const url = new URL(ctx.env["CF_API_BASE_URL"] + subpaths.join("/"));
 
-  return fetch(url, { ...ctx.request });
+  const { method, headers, body } = ctx.request;
+  return fetch(url, { method, headers, body });
 };
