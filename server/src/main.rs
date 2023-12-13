@@ -11,16 +11,11 @@
 #![allow(clippy::future_not_send)]
 //
 #![feature(iterator_try_collect)]
-#![feature(stmt_expr_attributes)]
-#![feature(slice_as_chunks)]
 #![feature(try_trait_v2)]
 #![feature(try_trait_v2_residual)]
 #![feature(try_blocks)]
 #![feature(result_flattening)]
 #![feature(decl_macro)]
-#![feature(fs_try_exists)]
-#![feature(async_closure)]
-#![feature(never_type)]
 #![feature(lazy_cell)]
 #![feature(impl_trait_in_assoc_type)]
 
