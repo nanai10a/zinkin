@@ -11,7 +11,7 @@ base64 = "0.22.1"
 chrono = { version = "0.4.31", features = ["serde"] }
 dashmap = "5.5.3"
 dotenvy = "0.15.7"
-jsonwebtoken = "9.1.0"
+jsonwebtoken = "10.3.0"
 pulldown-cmark = "0.11.0"
 rand = "0.8.5"
 rmp-serde = "1.1.2"
